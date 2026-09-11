@@ -1,0 +1,65 @@
+name: Release
+
+# TASK-14 AC-2/AC-3: only a successful build+test on main produces an
+# image; `build-image` depends on `test`, so a compile error or failing
+# test blocks the docker/push job entirely — nothing lands on the registry.
+on:
+  push:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Restore
+        run: dotnet restore Furina.sln
+
+      - name: Build
+        run: dotnet build Furina.sln --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test Furina.sln --no-build --configuration Release
+
+  build-image:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute lowercase image name
+        id: image
+        # GHCR/OCI image names must be lowercase and end in an alphanumeric
+        # character; this repo's name has uppercase letters and trails with
+        # "." "-", so github.repository can't be used as-is.
+        run: |
+          name=$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]' | sed -E 's/[-._]+$//')
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:latest

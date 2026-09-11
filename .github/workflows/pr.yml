@@ -1,0 +1,56 @@
+name: PR
+
+# TASK-14 AC-1: every PR gets a build/test status GitHub renders as a
+# pass/fail check directly on the PR — branch protection (configured on the
+# repo, see README) refuses to let a PR merge while this is red.
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Restore
+        run: dotnet restore Furina.sln
+
+      - name: Build
+        run: dotnet build Furina.sln --no-restore --configuration Release
+
+      - name: Test
+        run: >
+          dotnet test Furina.sln --no-build --configuration Release
+          --collect:"XPlat Code Coverage"
+          --results-directory ./coverage
+          --logger "trx;LogFileName=test-results.trx"
+
+      - name: Publish test results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Test results
+          path: coverage/**/test-results.trx
+          reporter: dotnet-trx
+          fail-on-error: true
+
+      - name: Coverage summary
+        if: always()
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: coverage/**/coverage.cobertura.xml
+          badge: true
+          format: markdown
+          output: both
+
+      - name: Comment coverage on PR
+        if: always()
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          recreate: true
+          path: code-coverage-results.md
