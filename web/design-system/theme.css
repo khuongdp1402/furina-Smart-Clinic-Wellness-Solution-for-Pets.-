@@ -1,0 +1,68 @@
+/*
+ * Turns tokens.css's `--furina-*` custom properties into Tailwind v4
+ * utility classes (bg-primary, text-ink, font-heading, etc.) via
+ * Tailwind v4's native `@theme` mechanism — the CSS-first replacement for
+ * a JS tailwind preset. Import this AFTER tokens.css and BEFORE `shadcn`'s
+ * own generated CSS (`shadcn init` appends its own `:root`/`.dark`
+ * palette + `@theme inline` block after whatever already exists in
+ * globals.css — if this file's declarations came after shadcn's,
+ * shadcn's defaults would win instead).
+ *
+ * Every theme key here reads a DIFFERENTLY-NAMED `--furina-*` variable
+ * from tokens.css, on purpose — see tokens.css's top comment for why
+ * `--color-primary: var(--color-primary)` (same name both sides) is a
+ * real bug (a self-reference CSS treats as invalid), not just a style
+ * nitpick.
+ */
+@theme inline {
+  --color-primary: var(--furina-color-primary);
+  --color-accent: var(--furina-color-accent);
+  --color-highlight: var(--furina-color-highlight);
+  --color-surface: var(--furina-color-surface);
+  --color-ink: var(--furina-color-ink);
+  --color-surface-dark: var(--furina-color-surface-dark);
+  --color-danger: var(--furina-color-danger);
+  --color-success: var(--furina-color-success);
+
+  /*
+   * Fallback lives in var()'s 2nd argument, not a competing :root
+   * declaration — see tokens.css's comment on why a real fallback
+   * declaration here would silently beat next/font's real value.
+   */
+  --font-heading: var(--furina-font-heading, ui-serif, Georgia, serif);
+  --font-ui: var(--furina-font-ui, ui-sans-serif, system-ui, sans-serif);
+
+  --radius: var(--furina-radius);
+  --radius-sm: calc(var(--furina-radius) * 0.6);
+  --radius-md: calc(var(--furina-radius) * 0.8);
+  --radius-lg: var(--furina-radius);
+  --radius-xl: calc(var(--furina-radius) * 1.4);
+
+  /*
+   * shadcn/ui component convention aliases, so `npx shadcn add` components
+   * work unmodified — they read --background/--foreground/--primary/etc.
+   * rather than our --color-* names directly. Values map onto the wiki
+   * palette; anything the wiki doesn't specify (border, card, secondary,
+   * muted) gets a neutral derived from --furina-color-ink/-surface rather
+   * than shadcn's default Zinc scale, so components look like Furina
+   * rather than a generic shadcn demo.
+   */
+  --color-background: var(--furina-color-surface);
+  --color-foreground: var(--furina-color-ink);
+  --color-primary-foreground: #ffffff; /* passes AA on primary, see contrast-check.mjs */
+  --color-accent-foreground: var(--furina-color-ink); /* white-on-accent fails AA, see Global Constraints */
+  --color-destructive: var(--furina-color-danger);
+  --color-destructive-foreground: #ffffff;
+
+  --color-card: #ffffff;
+  --color-card-foreground: var(--furina-color-ink);
+  --color-popover: #ffffff;
+  --color-popover-foreground: var(--furina-color-ink);
+  --color-secondary: #f5f5f4;
+  --color-secondary-foreground: var(--furina-color-ink);
+  --color-muted: #f5f5f4;
+  --color-muted-foreground: rgb(41 37 36 / 0.6); /* --furina-color-ink at 60% */
+  --color-border: rgb(41 37 36 / 0.1); /* --furina-color-ink at 10% */
+  --color-input: rgb(41 37 36 / 0.15); /* --furina-color-ink at 15% */
+  --color-ring: var(--furina-color-primary);
+}

@@ -1,0 +1,41 @@
+/*
+ * Design tokens for Furina — source of truth is the Taiga wiki page
+ * "thiet-ke-uiux". Every frontend (this landing page, and the Tenant/Super
+ * Admin portals in Sprint 5/6) imports this file rather than redefining
+ * colors. Change a value here, every consumer updates.
+ *
+ * Prefixed `--furina-*` deliberately, NOT `--color-*`/`--font-*`/`--radius`
+ * (Tailwind's own theme-key naming convention, used in theme.css). A raw
+ * token and the Tailwind theme key that maps to it must never share a
+ * name: `@theme inline { --color-primary: var(--color-primary); }` looks
+ * right but is a self-reference — the declaration becomes a dependency
+ * cycle, which CSS treats as invalid, silently zeroing out EVERY token
+ * (found by inspecting getComputedStyle in the browser: --color-surface
+ * and --font-heading both resolved to "" despite this exact-looking rule
+ * existing in the compiled CSS).
+ */
+:root {
+  --furina-color-primary: #0f766e;
+  --furina-color-accent: #f97066;
+  --furina-color-highlight: #fbbf24;
+  --furina-color-surface: #faf9f6;
+  --furina-color-ink: #292524;
+  --furina-color-surface-dark: #0f1b1a;
+  --furina-color-danger: #dc2626;
+  --furina-color-success: #16a34a;
+
+  --furina-radius: 0.75rem; /* rounded-xl */
+
+  /*
+   * Deliberately NOT declaring --furina-font-heading/--furina-font-ui
+   * here. next/font (web/landing/app/layout.tsx) sets both via a class on
+   * <html>, and a second :root-level declaration of the same custom
+   * property — even meant only as a "fallback" — has EQUAL CSS
+   * specificity to that class and wins on source order if it happens to
+   * come later in the bundle (Next hoists font-module CSS to the very
+   * top, ahead of this file, so a fallback declared here would silently
+   * override the real font every time). theme.css supplies the fallback
+   * instead, using var()'s second argument, which never creates a
+   * competing declaration.
+   */
+}

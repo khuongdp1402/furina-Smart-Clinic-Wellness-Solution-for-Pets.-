@@ -111,6 +111,44 @@ Image production dùng Dockerfile 2 stage (`build` bằng `dotnet/sdk:9.0`, `run
 - Redis đã lên trong compose theo yêu cầu DoD nhưng **chưa được code nào dùng** (chưa có tính năng caching) — sẽ wiring khi có task cần cache.
 - Port host: Postgres `5433`, Redis `6381` (tránh trùng với container Redis của project khác đang chạy sẵn trên máy — `6380`), API `8080`.
 
+## US-38: Thiết kế UI/UX & Bộ nhận diện thương hiệu (Design System)
+
+Trạng thái AC:
+
+- **AC-1** (design token áp vào trang mẫu, đúng màu/font/spacing): ✅ `web/landing/app/design-preview` — verify bằng Playwright (`web/landing/tests/landing.spec.ts`).
+- **AC-2** (landing page đủ 8 section theo wiki, không thiếu/thừa): ✅ `web/landing/app/page.tsx` — verify bằng Playwright, đếm + kiểm tra thứ tự `aria-label` của từng section.
+
+Spec đầy đủ: `docs/superpowers/specs/2026-09-11-design-system-landing-design.md` (nội dung thiết kế gốc: wiki Taiga trang `thiet-ke-uiux`). Plan triển khai: `docs/superpowers/plans/2026-09-11-design-system-landing.md`.
+
+### Chạy local
+
+```bash
+cd web/landing
+npm install
+npm run dev -- --port 3100   # port 3000 có thể bị chiếm bởi app khác trên máy dev
+
+# Kiểm tra token + contrast (không cần chạy web server)
+node ../design-system/contrast-check.mjs
+node --test ../design-system/contrast.test.mjs
+
+# E2E (Playwright tự chạy dev server trên port 3100)
+npm run test:e2e
+```
+
+### Bug thật đã phát hiện & sửa trong lúc triển khai
+
+- Turbopack chặn `@import` CSS vượt ra ngoài thư mục app ("leaves the filesystem root") — chặn đúng cách `web/landing` import token dùng chung từ `../../design-system/`. Sửa bằng `turbopack.root` trong `next.config.ts` trỏ lên `web/`.
+- `npx shadcn@latest init` mặc định (`-d`) cài **Base UI** (`@base-ui/react`), không phải Radix như spec yêu cầu — phải chỉ định rõ `-b radix`.
+- Mỗi lần chạy `shadcn init`/`add`, CLI ghi đè toàn bộ `app/globals.css` và có thể xoá `--font-heading` (Fraunces) về font mặc định — phải khôi phục token sau mỗi lần chạy CLI.
+
+### Chưa làm (theo đúng phạm vi wiki "Việc CHƯA làm")
+
+- Logo thật (mới có concept mô tả).
+- A/B test copy landing page.
+- Audit WCAG chính thức (có sanity-check tự động qua `contrast-check.mjs`, không thay thế audit thật).
+- Tenant Admin / Super Admin Portal (Sprint 5/6) áp dụng cùng token với tông khác — chưa tồn tại, sẽ import `web/design-system` khi tới sprint đó.
+- Next 15.5.25 (pin theo spec) có 2 lỗ hổng PostCSS mức build-time (XSS/path traversal khi build, không phải runtime browser) — bản vá đòi hỏi nâng lên Next 16, ngoài phạm vi task này.
+
 ## Việc còn lại (không thuộc scope TASK-11/12/13)
 
 - Pipeline CI/CD — task cuối của Sprint 1.
