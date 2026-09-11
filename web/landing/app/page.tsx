@@ -4,6 +4,9 @@ import { ProblemSolution } from "./sections/problem-solution";
 import { Features } from "./sections/features";
 import { ClinicMap } from "./sections/clinic-map";
 import { FeedPreview } from "./sections/feed-preview";
+import { ForClinics } from "./sections/for-clinics";
+import { Testimonials } from "./sections/testimonials";
+import { CtaFooter } from "./sections/cta-footer";
 
 export default function LandingPage() {
   return (
@@ -14,6 +17,9 @@ export default function LandingPage() {
       <Features />
       <ClinicMap />
       <FeedPreview />
+      <ForClinics />
+      <Testimonials />
+      <CtaFooter />
     </>
   );
 }
