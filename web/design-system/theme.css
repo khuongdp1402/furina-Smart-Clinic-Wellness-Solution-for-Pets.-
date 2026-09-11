@@ -2,7 +2,10 @@
  * Turns tokens.css's CSS variables into Tailwind v4 utility classes
  * (bg-primary, text-ink, font-heading, etc.) via Tailwind v4's native
  * `@theme` mechanism — the CSS-first replacement for a JS tailwind preset.
- * Import this AFTER tokens.css.
+ * Import this AFTER tokens.css and BEFORE `shadcn`'s own generated CSS
+ * (`shadcn init` appends its own `:root`/`.dark` palette + `@theme inline`
+ * block after whatever already exists in globals.css — if this file's
+ * declarations came after shadcn's, shadcn's defaults would win instead).
  */
 @theme inline {
   --color-primary: var(--color-primary);
@@ -18,13 +21,36 @@
   --font-ui: var(--font-ui);
 
   --radius: var(--radius);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
 
-  /* shadcn/ui component convention aliases, so `npx shadcn add` components
-     work unmodified — they read --background/--foreground/--primary/etc. */
+  /*
+   * shadcn/ui component convention aliases, so `npx shadcn add` components
+   * work unmodified — they read --background/--foreground/--primary/etc.
+   * rather than our --color-* names directly. Values map onto the wiki
+   * palette; anything the wiki doesn't specify (border, card, secondary,
+   * muted) gets a neutral derived from --color-ink or --color-surface
+   * rather than shadcn's default Zinc scale, so components look like
+   * Furina rather than a generic shadcn demo.
+   */
   --color-background: var(--color-surface);
   --color-foreground: var(--color-ink);
   --color-primary-foreground: #ffffff; /* passes AA on primary, see contrast-check.mjs */
   --color-accent-foreground: var(--color-ink); /* white-on-accent fails AA, see Global Constraints */
   --color-destructive: var(--color-danger);
   --color-destructive-foreground: #ffffff;
+
+  --color-card: #ffffff;
+  --color-card-foreground: var(--color-ink);
+  --color-popover: #ffffff;
+  --color-popover-foreground: var(--color-ink);
+  --color-secondary: #f5f5f4;
+  --color-secondary-foreground: var(--color-ink);
+  --color-muted: #f5f5f4;
+  --color-muted-foreground: rgb(41 37 36 / 0.6); /* --color-ink at 60% */
+  --color-border: rgb(41 37 36 / 0.1); /* --color-ink at 10% */
+  --color-input: rgb(41 37 36 / 0.15); /* --color-ink at 15% */
+  --color-ring: var(--color-primary);
 }

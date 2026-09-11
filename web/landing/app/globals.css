@@ -1,8 +1,18 @@
 @import "../../design-system/tokens.css";
 @import "../../design-system/theme.css";
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
 
 body {
   background-color: var(--color-surface);
   color: var(--color-ink);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
 }
