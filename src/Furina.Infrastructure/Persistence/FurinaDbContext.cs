@@ -16,6 +16,8 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
     public DbSet<Appointment> Appointments => Set<Appointment>();
     public DbSet<Staff> Staff => Set<Staff>();
     public DbSet<Shift> Shifts => Set<Shift>();
+    public DbSet<ServiceCatalog> ServiceCatalog => Set<ServiceCatalog>();
+    public DbSet<ClinicServicePrice> ClinicServicePrices => Set<ClinicServicePrice>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -131,11 +133,47 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
             e.Property(x => x.Id).HasColumnName("id");
             e.Property(x => x.TenantId).HasColumnName("tenant_id").IsRequired();
             e.Property(x => x.ClinicId).HasColumnName("clinic_id").IsRequired();
+            e.Property(x => x.ServiceCatalogId).HasColumnName("service_catalog_id");
             e.Property(x => x.ScheduledAt).HasColumnName("scheduled_at");
             e.Property(x => x.Status).HasColumnName("status").IsRequired();
             e.HasIndex(x => new { x.ClinicId, x.ScheduledAt });
             e.HasOne(x => x.Clinic).WithMany()
                 .HasForeignKey(x => x.ClinicId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.ServiceCatalog).WithMany()
+                .HasForeignKey(x => x.ServiceCatalogId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Tenant).WithMany()
+                .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ServiceCatalog>(e =>
+        {
+            e.ToTable("service_catalog");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id").IsRequired();
+            e.Property(x => x.Name).HasColumnName("name").IsRequired();
+            e.Property(x => x.DefaultPrice).HasColumnName("default_price").HasColumnType("numeric(12,2)");
+            e.Property(x => x.DefaultDurationMinutes).HasColumnName("default_duration_minutes");
+            e.Property(x => x.IsArchived).HasColumnName("is_archived");
+            e.HasOne(x => x.Tenant).WithMany()
+                .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ClinicServicePrice>(e =>
+        {
+            e.ToTable("clinic_service_prices");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id").IsRequired();
+            e.Property(x => x.ClinicId).HasColumnName("clinic_id").IsRequired();
+            e.Property(x => x.ServiceCatalogId).HasColumnName("service_catalog_id").IsRequired();
+            e.Property(x => x.Price).HasColumnName("price").HasColumnType("numeric(12,2)");
+            e.Property(x => x.DurationMinutes).HasColumnName("duration_minutes");
+            e.HasIndex(x => new { x.ClinicId, x.ServiceCatalogId }).IsUnique();
+            e.HasOne(x => x.Clinic).WithMany()
+                .HasForeignKey(x => x.ClinicId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.ServiceCatalog).WithMany()
+                .HasForeignKey(x => x.ServiceCatalogId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(x => x.Tenant).WithMany()
                 .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
         });
