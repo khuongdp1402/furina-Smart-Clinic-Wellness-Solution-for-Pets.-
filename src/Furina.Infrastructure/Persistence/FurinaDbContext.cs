@@ -14,6 +14,8 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<Clinic> Clinics => Set<Clinic>();
     public DbSet<Appointment> Appointments => Set<Appointment>();
+    public DbSet<Staff> Staff => Set<Staff>();
+    public DbSet<Shift> Shifts => Set<Shift>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -134,6 +136,41 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
             e.HasIndex(x => new { x.ClinicId, x.ScheduledAt });
             e.HasOne(x => x.Clinic).WithMany()
                 .HasForeignKey(x => x.ClinicId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Tenant).WithMany()
+                .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Staff>(e =>
+        {
+            e.ToTable("staff");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id").IsRequired();
+            e.Property(x => x.UserId).HasColumnName("user_id").IsRequired();
+            e.Property(x => x.ClinicId).HasColumnName("clinic_id").IsRequired();
+            e.Property(x => x.JobTitle).HasColumnName("job_title");
+            e.HasIndex(x => new { x.UserId, x.ClinicId }).IsUnique();
+            e.HasOne(x => x.User).WithMany()
+                .HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Clinic).WithMany()
+                .HasForeignKey(x => x.ClinicId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Tenant).WithMany()
+                .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Shift>(e =>
+        {
+            e.ToTable("shifts");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id").IsRequired();
+            e.Property(x => x.StaffId).HasColumnName("staff_id").IsRequired();
+            e.Property(x => x.DayOfWeek).HasColumnName("day_of_week");
+            e.Property(x => x.StartTime).HasColumnName("start_time");
+            e.Property(x => x.EndTime).HasColumnName("end_time");
+            e.HasIndex(x => new { x.StaffId, x.DayOfWeek });
+            e.HasOne(x => x.Staff).WithMany(s => s.Shifts)
+                .HasForeignKey(x => x.StaffId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(x => x.Tenant).WithMany()
                 .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
         });

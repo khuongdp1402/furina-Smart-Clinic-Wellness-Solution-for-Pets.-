@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Furina.Api.Auth;
 using Furina.Infrastructure.Auth;
 using Furina.Infrastructure.MultiTenancy;
@@ -11,7 +12,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+// TASK-16: request/response DTOs use enums like DayOfWeek as readable
+// strings ("Monday"), not the framework's numeric default — found by
+// actually calling the endpoint with a day name and getting a real 400.
+builder.Services.AddControllers()
+    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
