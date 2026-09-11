@@ -1,5 +1,38 @@
 import { test, expect } from "@playwright/test";
 
+test.describe("Design tokens actually resolve (US-38 AC-1, regression)", () => {
+  // A real bug slipped past every other check in this file: Tailwind v4's
+  // `@theme inline` silently invalidated every color/font token (CSS
+  // custom-property self-reference cycle), and separately next/font's
+  // real Fraunces value lost a cascade tie to tokens.css's own fallback
+  // declaration. `getByRole`/`toBeVisible` assertions don't notice either
+  // one — the elements are still there, just unstyled. Only checking the
+  // actual computed value (found by inspecting getComputedStyle in a
+  // browser) catches it.
+  test("body background and heading font resolve to real values, not empty/fallback", async ({
+    page,
+  }) => {
+    await page.goto("/");
+
+    const bodyBg = await page.evaluate(
+      () => getComputedStyle(document.body).backgroundColor
+    );
+    expect(bodyBg).toBe("rgb(250, 249, 246)"); // --color-surface, #FAF9F6
+
+    const h1Font = await page
+      .locator("h1")
+      .first()
+      .evaluate((el) => getComputedStyle(el).fontFamily);
+    expect(h1Font).toContain("Fraunces");
+    expect(h1Font).not.toContain("ui-serif"); // the tokens.css fallback stack
+
+    const heroCtaBg = await page
+      .locator('section[aria-label="Hero"] button', { hasText: "Đặt lịch ngay" })
+      .evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(heroCtaBg).toBe("rgb(249, 112, 102)"); // --color-accent, #F97066
+  });
+});
+
 test.describe("Landing page (US-38 AC-2)", () => {
   test("renders exactly 8 sections in the spec's order", async ({ page }) => {
     const consoleErrors: string[] = [];
