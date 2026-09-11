@@ -54,3 +54,34 @@ jobs:
         with:
           recreate: true
           path: code-coverage-results.md
+
+  web-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Token contrast check
+        run: node web/design-system/contrast-check.mjs
+
+      - name: Token unit tests
+        run: node --test web/design-system/contrast.test.mjs
+
+      - name: Install landing deps
+        working-directory: web/landing
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: web/landing
+        run: npx playwright install --with-deps chromium
+
+      - name: Build landing
+        working-directory: web/landing
+        run: npm run build
+
+      - name: E2E tests
+        working-directory: web/landing
+        run: npm run test:e2e
