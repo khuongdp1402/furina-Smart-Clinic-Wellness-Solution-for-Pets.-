@@ -111,7 +111,29 @@ Image production dùng Dockerfile 2 stage (`build` bằng `dotnet/sdk:9.0`, `run
 - Redis đã lên trong compose theo yêu cầu DoD nhưng **chưa được code nào dùng** (chưa có tính năng caching) — sẽ wiring khi có task cần cache.
 - Port host: Postgres `5433`, Redis `6381` (tránh trùng với container Redis của project khác đang chạy sẵn trên máy — `6380`), API `8080`.
 
-## Việc còn lại (không thuộc scope TASK-11/12/13)
+## TASK-14: Pipeline CI/CD
 
-- Pipeline CI/CD — task cuối của Sprint 1.
+Repo: https://github.com/khuongdp1402/furina-Smart-Clinic-Wellness-Solution-for-Pets.-
+
+Trạng thái AC (verify thật trên GitHub, không phải chỉ đọc YAML):
+
+- **AC-1** (PR test fail → không merge được, branch protection chặn thật chứ không chỉ cảnh báo): ✅ tạo PR #1 với 1 test cố tình fail, bật branch protection yêu cầu check `build-and-test`, gọi merge API → GitHub trả **405 "Required status check build-and-test is failing"**. PR đã đóng, nhánh đã xoá sau khi verify.
+- **AC-2** (merge vào main → image mới đúng tag SHA trên registry): ✅ push lên `main` kích hoạt `release.yml`, job `test` pass rồi mới tới job `build-image` (phụ thuộc `test`), push thành công 2 tag: `ghcr.io/khuongdp1402/furina-smart-clinic-wellness-solution-for-pets:<sha>` và `:latest`.
+
+### 2 workflow
+
+- **`.github/workflows/pr.yml`** — mọi PR vào `main`: restore, build, test (`dotnet test` + coverage qua coverlet), comment coverage lên PR. Check tên `build-and-test` — đây chính là context required trong branch protection.
+- **`.github/workflows/release.yml`** — push vào `main`: job `test` chạy lại (không tin PR check cũ), job `build-image` (`needs: test`) build Docker image bằng `Dockerfile` gốc và push GHCR với tag `<commit-sha>` + `latest`. Tên image bị hạ về lowercase + bỏ ký tự cuối không hợp lệ (`.`/`-`) vì tên repo có chữ hoa.
+
+### Branch protection (đã bật thật trên GitHub, qua API)
+
+`main` yêu cầu status check `build-and-test` pass (`enforce_admins: true` — áp dụng cả với admin, không có ngoại lệ).
+
+### Test project
+
+`tests/Furina.Tests` (xUnit) — hiện có test cho `JwtTokenService` (claims đúng, hash refresh token đúng, không bao giờ lưu token thật). Chạy: `dotnet test`.
+
+## Việc còn lại (Sprint 1 đã xong — TASK-11/12/13/14)
+
 - Refresh token hiện không rotate (giữ nguyên giá trị đến khi hết hạn/bị revoke) — cân nhắc rotate nếu cần siết bảo mật hơn ở sprint sau.
+- Test coverage hiện chỉ có `JwtTokenService`; các phần còn lại (middleware, controllers) chưa có test tự động, mới verify bằng tay qua HTTP + psql.
