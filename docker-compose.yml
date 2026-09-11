@@ -1,0 +1,85 @@
+# Dev stack for a clean machine: `docker compose up` brings up Postgres +
+# Redis + the API (hot-reloading via `dotnet watch`) with no local .NET SDK
+# install required (TASK-13 AC-1). Migrations run once via the `migrator`
+# job using the `postgres` superuser — `api` itself connects as furina_app,
+# which intentionally cannot CREATE TABLE (see TASK-11: that's what keeps
+# RLS from being bypassable at the app layer).
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: furina-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: furina
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: furina_superuser_dev_pw
+    ports:
+      - "5433:5432"
+    volumes:
+      - furina_pg_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: furina-redis
+    restart: unless-stopped
+    ports:
+      - "6381:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # One-shot: applies EF Core migrations, then exits. `api` waits for this
+  # to succeed before starting.
+  migrator:
+    image: mcr.microsoft.com/dotnet/sdk:9.0
+    working_dir: /src
+    volumes:
+      - ./:/src
+    environment:
+      FURINA_DB_CONNECTION: "Host=postgres;Port=5432;Database=furina;Username=postgres;Password=furina_superuser_dev_pw"
+    command: >
+      bash -c "dotnet tool install --global dotnet-ef --version 9.* &&
+      export PATH=\"$$PATH:/root/.dotnet/tools\" &&
+      dotnet ef database update --project src/Furina.Infrastructure --startup-project src/Furina.Infrastructure"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    image: mcr.microsoft.com/dotnet/sdk:9.0
+    container_name: furina-api
+    working_dir: /src
+    volumes:
+      - ./:/src
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: "http://+:8080"
+      ConnectionStrings__Furina: "Host=postgres;Port=5432;Database=furina;Username=furina_app;Password=furina_app_dev_pw"
+    # `dotnet watch` picks up file changes on the bind-mounted ./src and
+    # rebuilds/restarts in place — TASK-13 AC-3, no image rebuild needed.
+    command: dotnet watch --project src/Furina.Api run --no-launch-profile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+    # No container-level healthcheck here: the `sdk` image doesn't ship
+    # curl/wget, and adding one just to probe ourselves isn't worth the
+    # extra apt layer. /health is verified from the host (TASK-13 AC-1's
+    # Verify column says "manual" anyway).
+
+volumes:
+  furina_pg_data:

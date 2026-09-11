@@ -1,0 +1,6 @@
+@Furina.Api_HostAddress = http://localhost:5207
+
+GET {{Furina.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

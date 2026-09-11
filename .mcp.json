@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "acp": {
+      "command": "node",
+      "args": [
+        "--env-file=E:/Project/Tool tich hop MCP/.env",
+        "--experimental-strip-types",
+        "E:/Project/Tool tich hop MCP/packages/mcp-server/src/index.ts"
+      ],
+      "cwd": "E:/Project/Tool tich hop MCP"
+    }
+  }
+}

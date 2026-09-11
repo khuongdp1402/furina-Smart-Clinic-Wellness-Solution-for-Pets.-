@@ -1,0 +1,96 @@
+using System.Text;
+using Furina.Api.Auth;
+using Furina.Infrastructure.Auth;
+using Furina.Infrastructure.MultiTenancy;
+using Furina.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+
+builder.Services.AddControllers();
+// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddOpenApi();
+
+// --- Multi-tenant database wiring (TASK-11) ---
+// Scoped so each HTTP request gets its own tenant value and its own
+// connection-interceptor instance stamping that tenant onto the session.
+builder.Services.AddScoped<ITenantContext, TenantContext>();
+builder.Services.AddScoped<TenantConnectionInterceptor>();
+
+builder.Services.AddDbContext<FurinaDbContext>((sp, options) =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("Furina")
+        ?? throw new InvalidOperationException("Missing ConnectionStrings:Furina configuration.");
+    options.UseNpgsql(connectionString);
+    options.AddInterceptors(sp.GetRequiredService<TenantConnectionInterceptor>());
+});
+
+// --- Auth (TASK-12) ---
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
+
+var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
+    ?? throw new InvalidOperationException("Missing Jwt configuration section.");
+if (string.IsNullOrWhiteSpace(jwtOptions.Secret))
+{
+    throw new InvalidOperationException("Jwt:Secret must be configured (see appsettings.Development.json).");
+}
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwtOptions.Issuer,
+            ValidateAudience = true,
+            ValidAudience = jwtOptions.Audience,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret)),
+            ClockSkew = TimeSpan.FromSeconds(30),
+        };
+    });
+
+builder.Services.AddAuthorization(options => options.AddFurinaPolicies());
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+}
+
+app.UseHttpsRedirection();
+
+// Tenant must be resolved before anything else touches the DB or checks a
+// JWT's tenant_id claim (TASK-12 AC-2).
+app.UseMiddleware<TenantResolutionMiddleware>();
+
+app.UseAuthentication();
+
+// Rejects a token whose tenant_id claim doesn't match the resolved tenant,
+// before UseAuthorization evaluates role policies.
+app.UseMiddleware<TenantClaimGuardMiddleware>();
+
+app.UseAuthorization();
+
+app.MapControllers();
+
+if (app.Configuration.GetValue<bool>("Seed:RunOnStartup"))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<FurinaDbContext>();
+    var tenantContext = scope.ServiceProvider.GetRequiredService<ITenantContext>();
+    await SeedData.SeedAsync(db, tenantContext);
+}
+
+app.Run();
+
+// Exposed for WebApplicationFactory-based integration tests.
+public partial class Program;
