@@ -1,0 +1,30 @@
+/*
+ * Turns tokens.css's CSS variables into Tailwind v4 utility classes
+ * (bg-primary, text-ink, font-heading, etc.) via Tailwind v4's native
+ * `@theme` mechanism — the CSS-first replacement for a JS tailwind preset.
+ * Import this AFTER tokens.css.
+ */
+@theme inline {
+  --color-primary: var(--color-primary);
+  --color-accent: var(--color-accent);
+  --color-highlight: var(--color-highlight);
+  --color-surface: var(--color-surface);
+  --color-ink: var(--color-ink);
+  --color-surface-dark: var(--color-surface-dark);
+  --color-danger: var(--color-danger);
+  --color-success: var(--color-success);
+
+  --font-heading: var(--font-heading);
+  --font-ui: var(--font-ui);
+
+  --radius: var(--radius);
+
+  /* shadcn/ui component convention aliases, so `npx shadcn add` components
+     work unmodified — they read --background/--foreground/--primary/etc. */
+  --color-background: var(--color-surface);
+  --color-foreground: var(--color-ink);
+  --color-primary-foreground: #ffffff; /* passes AA on primary, see contrast-check.mjs */
+  --color-accent-foreground: var(--color-ink); /* white-on-accent fails AA, see Global Constraints */
+  --color-destructive: var(--color-danger);
+  --color-destructive-foreground: #ffffff;
+}

@@ -1,0 +1,23 @@
+/*
+ * Design tokens for Furina — source of truth is the Taiga wiki page
+ * "thiet-ke-uiux". Every frontend (this landing page, and the Tenant/Super
+ * Admin portals in Sprint 5/6) imports this file rather than redefining
+ * colors. Change a value here, every consumer updates.
+ */
+:root {
+  --color-primary: #0f766e;
+  --color-accent: #f97066;
+  --color-highlight: #fbbf24;
+  --color-surface: #faf9f6;
+  --color-ink: #292524;
+  --color-surface-dark: #0f1b1a;
+  --color-danger: #dc2626;
+  --color-success: #16a34a;
+
+  /* Set to real values by next/font in web/landing/app/layout.tsx (Task 2).
+     Fall back to system fonts so this file alone is still usable. */
+  --font-heading: ui-serif, Georgia, serif;
+  --font-ui: ui-sans-serif, system-ui, sans-serif;
+
+  --radius: 0.75rem; /* rounded-xl */
+}

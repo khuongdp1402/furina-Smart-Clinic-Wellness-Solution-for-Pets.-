@@ -1,0 +1,9 @@
+{
+  "name": "furina-web",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "test:tokens": "node --test design-system/contrast.test.mjs",
+    "check:contrast": "node design-system/contrast-check.mjs"
+  }
+}
