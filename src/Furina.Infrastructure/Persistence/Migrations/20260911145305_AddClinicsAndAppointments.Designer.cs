@@ -3,6 +3,7 @@ using System;
 using Furina.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Furina.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(FurinaDbContext))]
-    partial class FurinaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260911145305_AddClinicsAndAppointments")]
+    partial class AddClinicsAndAppointments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -37,10 +40,6 @@ namespace Furina.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("scheduled_at");
 
-                    b.Property<Guid?>("ServiceCatalogId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("service_catalog_id");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text")
@@ -51,8 +50,6 @@ namespace Furina.Infrastructure.Persistence.Migrations
                         .HasColumnName("tenant_id");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ServiceCatalogId");
 
                     b.HasIndex("TenantId");
 
@@ -105,45 +102,6 @@ namespace Furina.Infrastructure.Persistence.Migrations
                     b.HasIndex("TenantId");
 
                     b.ToTable("clinics", (string)null);
-                });
-
-            modelBuilder.Entity("Furina.Domain.Entities.ClinicServicePrice", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid>("ClinicId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("clinic_id");
-
-                    b.Property<int>("DurationMinutes")
-                        .HasColumnType("integer")
-                        .HasColumnName("duration_minutes");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("numeric(12,2)")
-                        .HasColumnName("price");
-
-                    b.Property<Guid>("ServiceCatalogId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("service_catalog_id");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ServiceCatalogId");
-
-                    b.HasIndex("TenantId");
-
-                    b.HasIndex("ClinicId", "ServiceCatalogId")
-                        .IsUnique();
-
-                    b.ToTable("clinic_service_prices", (string)null);
                 });
 
             modelBuilder.Entity("Furina.Domain.Entities.RefreshToken", b =>
@@ -212,113 +170,6 @@ namespace Furina.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("roles", (string)null);
-                });
-
-            modelBuilder.Entity("Furina.Domain.Entities.ServiceCatalog", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<int>("DefaultDurationMinutes")
-                        .HasColumnType("integer")
-                        .HasColumnName("default_duration_minutes");
-
-                    b.Property<decimal>("DefaultPrice")
-                        .HasColumnType("numeric(12,2)")
-                        .HasColumnName("default_price");
-
-                    b.Property<bool>("IsArchived")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_archived");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("name");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TenantId");
-
-                    b.ToTable("service_catalog", (string)null);
-                });
-
-            modelBuilder.Entity("Furina.Domain.Entities.Shift", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<int>("DayOfWeek")
-                        .HasColumnType("integer")
-                        .HasColumnName("day_of_week");
-
-                    b.Property<TimeOnly>("EndTime")
-                        .HasColumnType("time without time zone")
-                        .HasColumnName("end_time");
-
-                    b.Property<Guid>("StaffId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("staff_id");
-
-                    b.Property<TimeOnly>("StartTime")
-                        .HasColumnType("time without time zone")
-                        .HasColumnName("start_time");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TenantId");
-
-                    b.HasIndex("StaffId", "DayOfWeek");
-
-                    b.ToTable("shifts", (string)null);
-                });
-
-            modelBuilder.Entity("Furina.Domain.Entities.Staff", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid>("ClinicId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("clinic_id");
-
-                    b.Property<string>("JobTitle")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("job_title");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClinicId");
-
-                    b.HasIndex("TenantId");
-
-                    b.HasIndex("UserId", "ClinicId")
-                        .IsUnique();
-
-                    b.ToTable("staff", (string)null);
                 });
 
             modelBuilder.Entity("Furina.Domain.Entities.Tenant", b =>
@@ -427,11 +278,6 @@ namespace Furina.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Furina.Domain.Entities.ServiceCatalog", "ServiceCatalog")
-                        .WithMany()
-                        .HasForeignKey("ServiceCatalogId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("Furina.Domain.Entities.Tenant", "Tenant")
                         .WithMany()
                         .HasForeignKey("TenantId")
@@ -439,8 +285,6 @@ namespace Furina.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Clinic");
-
-                    b.Navigation("ServiceCatalog");
 
                     b.Navigation("Tenant");
                 });
@@ -452,33 +296,6 @@ namespace Furina.Infrastructure.Persistence.Migrations
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Tenant");
-                });
-
-            modelBuilder.Entity("Furina.Domain.Entities.ClinicServicePrice", b =>
-                {
-                    b.HasOne("Furina.Domain.Entities.Clinic", "Clinic")
-                        .WithMany()
-                        .HasForeignKey("ClinicId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Furina.Domain.Entities.ServiceCatalog", "ServiceCatalog")
-                        .WithMany()
-                        .HasForeignKey("ServiceCatalogId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Furina.Domain.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Clinic");
-
-                    b.Navigation("ServiceCatalog");
 
                     b.Navigation("Tenant");
                 });
@@ -511,63 +328,6 @@ namespace Furina.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Tenant");
-                });
-
-            modelBuilder.Entity("Furina.Domain.Entities.ServiceCatalog", b =>
-                {
-                    b.HasOne("Furina.Domain.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Tenant");
-                });
-
-            modelBuilder.Entity("Furina.Domain.Entities.Shift", b =>
-                {
-                    b.HasOne("Furina.Domain.Entities.Staff", "Staff")
-                        .WithMany("Shifts")
-                        .HasForeignKey("StaffId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Furina.Domain.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Staff");
-
-                    b.Navigation("Tenant");
-                });
-
-            modelBuilder.Entity("Furina.Domain.Entities.Staff", b =>
-                {
-                    b.HasOne("Furina.Domain.Entities.Clinic", "Clinic")
-                        .WithMany()
-                        .HasForeignKey("ClinicId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Furina.Domain.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Furina.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Clinic");
-
-                    b.Navigation("Tenant");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Furina.Domain.Entities.User", b =>
@@ -611,11 +371,6 @@ namespace Furina.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Furina.Domain.Entities.Role", b =>
                 {
                     b.Navigation("UserRoles");
-                });
-
-            modelBuilder.Entity("Furina.Domain.Entities.Staff", b =>
-                {
-                    b.Navigation("Shifts");
                 });
 
             modelBuilder.Entity("Furina.Domain.Entities.Tenant", b =>
