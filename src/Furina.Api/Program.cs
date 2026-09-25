@@ -48,6 +48,14 @@ if (string.IsNullOrWhiteSpace(jwtOptions.Secret))
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        // Without this, JwtBearerHandler silently remaps standard short
+        // claim names (e.g. "sub") to legacy XML-SOAP claim URIs on the
+        // way in — found for real when PetsController's
+        // FindFirstValue(JwtRegisteredClaimNames.Sub) came back null even
+        // though the token (inspected via jwt.io) clearly had a "sub"
+        // claim. Every claim now reads back exactly as JwtTokenService
+        // wrote it.
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,

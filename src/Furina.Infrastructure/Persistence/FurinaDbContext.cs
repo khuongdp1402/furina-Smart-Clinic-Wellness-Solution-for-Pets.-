@@ -18,6 +18,8 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
     public DbSet<Shift> Shifts => Set<Shift>();
     public DbSet<ServiceCatalog> ServiceCatalog => Set<ServiceCatalog>();
     public DbSet<ClinicServicePrice> ClinicServicePrices => Set<ClinicServicePrice>();
+    public DbSet<Pet> Pets => Set<Pet>();
+    public DbSet<PetWeightLog> PetWeightLogs => Set<PetWeightLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -174,6 +176,43 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
                 .HasForeignKey(x => x.ClinicId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(x => x.ServiceCatalog).WithMany()
                 .HasForeignKey(x => x.ServiceCatalogId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Tenant).WithMany()
+                .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Pet>(e =>
+        {
+            e.ToTable("pets");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id").IsRequired();
+            e.Property(x => x.OwnerId).HasColumnName("owner_id").IsRequired();
+            e.Property(x => x.Name).HasColumnName("name").IsRequired();
+            e.Property(x => x.Species).HasColumnName("species").IsRequired();
+            e.Property(x => x.Breed).HasColumnName("breed");
+            e.Property(x => x.DateOfBirth).HasColumnName("date_of_birth");
+            e.Property(x => x.Gender).HasColumnName("gender");
+            e.Property(x => x.PhotoUrl).HasColumnName("photo_url");
+            e.Property(x => x.MicrochipId).HasColumnName("microchip_id");
+            e.HasIndex(x => x.OwnerId);
+            e.HasOne(x => x.Owner).WithMany()
+                .HasForeignKey(x => x.OwnerId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Tenant).WithMany()
+                .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PetWeightLog>(e =>
+        {
+            e.ToTable("pet_weight_logs");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id").IsRequired();
+            e.Property(x => x.PetId).HasColumnName("pet_id").IsRequired();
+            e.Property(x => x.WeightKg).HasColumnName("weight_kg").HasColumnType("numeric(6,2)");
+            e.Property(x => x.MeasuredAt).HasColumnName("measured_at");
+            e.HasIndex(x => new { x.PetId, x.MeasuredAt });
+            e.HasOne(x => x.Pet).WithMany(p => p.WeightLogs)
+                .HasForeignKey(x => x.PetId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(x => x.Tenant).WithMany()
                 .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
         });
