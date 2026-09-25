@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FURINA — Hệ Thống Quản Trị & Bệnh Án Điện Tử (Clinical Workstation)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="admin.css">
 </head>
 <body>
@@ -589,6 +588,112 @@
 
     </div>
   </main>
+
+  <!-- VietQR Payment Modal -->
+  <div class="admin-modal-overlay" id="qrModal" onclick="closeAdminModal('qrModal')">
+    <div class="admin-modal-box" onclick="event.stopPropagation()">
+      <button class="modal-close-btn" onclick="closeAdminModal('qrModal')">✕</button>
+      <div class="qr-modal-body">
+        <div style="font-size: 0.75rem; letter-spacing: 0.08em; color: var(--teal-dark); font-weight: 800; margin-bottom: 0.25rem;">
+          CỔNG THANH TOÁN VIETQR CHUẨN NAPAS 247
+        </div>
+        <h3 style="font-family: var(--font-heading); font-size: 1.35rem; color: var(--text-main);">
+          Quét Mã Để Thanh Toán
+        </h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">
+          Mở ứng dụng ngân hàng hoặc ví điện tử (MoMo, ZaloPay, Vietcombank...) để quét
+        </p>
+
+        <!-- Simulated QR -->
+        <div class="qr-code-img">
+          <div style="background: #FFFFFF; padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: 800; font-size: 0.75rem; color: var(--teal-dark); border: 1px solid var(--border-color);">
+            VIETQR · NAPAS
+          </div>
+        </div>
+
+        <div style="background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; text-align: left; font-size: 0.85rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
+            <span style="color: var(--text-muted);">Đơn vị thụ hưởng:</span>
+            <strong>BVTY FURINA THẢO ĐIỀN</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
+            <span style="color: var(--text-muted);">Số tài khoản:</span>
+            <strong style="font-family: monospace;">1028.8999.8888 (Vietcombank)</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
+            <span style="color: var(--text-muted);">Số tiền:</span>
+            <strong style="color: var(--teal-dark); font-size: 1.15rem;" id="qrModalAmount">341,500 đ</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Nội dung chuyển khoản:</span>
+            <strong id="qrModalMemo">FURINA HD-2026-09281</strong>
+          </div>
+        </div>
+
+        <button class="btn btn-success" style="width: 100%; padding: 0.75rem;" onclick="confirmQrPaid()">
+          ✓ Xác Nhận Đã Nhận Tiền & In Hóa Đơn
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prescription Printable Modal -->
+  <div class="admin-modal-overlay" id="rxModal" onclick="closeAdminModal('rxModal')">
+    <div class="admin-modal-box" style="max-width: 680px;" onclick="event.stopPropagation()">
+      <button class="modal-close-btn" onclick="closeAdminModal('rxModal')">✕</button>
+      
+      <div class="rx-doc">
+        <div class="rx-doc-header">
+          <div>
+            <h3 style="font-family: var(--font-heading); font-size: 1.3rem; color: var(--teal-dark);">BỆNH VIỆN THÚ Y FURINA</h3>
+            <div style="font-size: 0.78rem; color: var(--text-muted);">Cơ sở 2: 45 Đường Thảo Điền, TP. Thủ Đức · Hotline: 1900 8899</div>
+          </div>
+          <div style="text-align: right;">
+            <strong style="font-size: 1.1rem; color: var(--text-main);">ĐƠN THUỐC ĐIỆN TỬ</strong>
+            <div style="font-size: 0.78rem; color: var(--text-muted);" id="rxDocDate">Ngày 25/09/2026</div>
+          </div>
+        </div>
+
+        <div style="background: #F8FAFC; padding: 0.85rem; border-radius: var(--radius-sm); margin-bottom: 1rem; font-size: 0.85rem;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
+            <span>Tên thú cưng: <strong id="rxDocPet">Lulu (Mèo Anh Lông Ngắn)</strong></span>
+            <span>Cân nặng: <strong id="rxDocWeight">4.2 kg</strong> · Thân nhiệt: <strong>39.2°C</strong></span>
+          </div>
+          <div>Chẩn đoán: <strong>Viêm đường hô hấp trên thể nhẹ (Feline Upper Respiratory)</strong></div>
+        </div>
+
+        <table class="admin-table" style="font-size: 0.82rem; margin-bottom: 1.25rem;">
+          <thead>
+            <tr>
+              <th>Tên Thuốc / Hoạt Chất</th>
+              <th>Liều Lượng</th>
+              <th>SL</th>
+              <th>Cách Dùng</th>
+            </tr>
+          </thead>
+          <tbody id="rxDocItemsBody">
+            <!-- Rendered by admin.js -->
+          </tbody>
+        </table>
+
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; padding-top: 1rem; border-top: 1px dashed var(--border-color);">
+          <div style="font-size: 0.78rem; color: var(--text-muted); max-width: 320px;">
+            * Tái khám sau 5 ngày hoặc khi có dấu hiệu sốt cao, thở gấp.<br>
+            * Đơn thuốc có giá trị xuất thuốc trong vòng 48 giờ.
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2rem;">BÁC SĨ ĐIỀU TRỊ</div>
+            <strong>BS. Trần Thảo Vy</strong>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem;">
+        <button class="btn btn-outline" onclick="closeAdminModal('rxModal')">Đóng</button>
+        <button class="btn btn-primary" onclick="window.print()">🖨️ In Đơn Thuốc (Ctrl + P)</button>
+      </div>
+    </div>
+  </div>
 
   <script src="admin.js"></script>
 </body>

@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FURINA — Bệnh Viện & Hệ Thống Chăm Sóc Thú Cưng Chuẩn Quốc Tế</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="client.css">
 </head>
 <body>
@@ -217,13 +216,17 @@
             </div>
           </div>
 
-          <div style="background: rgba(0,0,0,0.15); border-radius: 6px; padding: 0.5rem 0.75rem; font-family: monospace; font-size: 0.8rem; margin-bottom: 1rem;" id="passRfid">
-            RFID CHIP: 982.014.281.092
+          <div style="background: rgba(0,0,0,0.15); border-radius: 6px; padding: 0.5rem 0.75rem; font-family: monospace; font-size: 0.8rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;" id="passRfid">
+            <span>RFID CHIP: 982.014.281.092</span>
+            <span style="background: rgba(255,255,255,0.25); padding: 0.15rem 0.45rem; border-radius: 4px; font-size: 0.7rem;">WSAVA ID</span>
           </div>
 
           <div class="passport-footer">
             <div>Chủ nuôi: <strong id="passOwner">Đỗ Phú Khương</strong></div>
-            <div>Tích lũy: <strong style="color: #FDE68A;" id="passStars">1,450 Stars</strong></div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <div>Tích lũy: <strong style="color: #FDE68A;" id="passStars">1,450 Stars</strong></div>
+              <div class="qr-watermark" title="Quét mã QR để mở y bạ điện tử"></div>
+            </div>
           </div>
         </div>
 
@@ -457,6 +460,55 @@
       </div>
     </div>
   </footer>
+
+  <!-- Booking Confirmation Modal -->
+  <div class="modal-overlay" id="bookingModal" onclick="closeBookingModal()">
+    <div class="modal-dialog" onclick="event.stopPropagation()">
+      <div class="modal-hero-icon">✓</div>
+      <h3 style="font-family: var(--font-heading); font-size: 1.5rem; text-align: center; color: var(--text-main); margin-bottom: 0.35rem;">
+        Đặt Lịch Hẹn Thành Công!
+      </h3>
+      <p style="text-align: center; font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+        Hệ thống đã gửi số thứ tự điện tử tới Bàn Điều Phối của Bác Sĩ.
+      </p>
+
+      <div class="summary-receipt">
+        <div class="sr-row">
+          <span>Mã phiếu khám:</span>
+          <strong style="color: var(--teal-dark); font-family: monospace; font-size: 1.05rem;" id="modalApptCode">#FUR-8891</strong>
+        </div>
+        <div class="sr-row">
+          <span>Thú cưng:</span>
+          <strong id="modalPetInfo">Mochi (Golden Retriever)</strong>
+        </div>
+        <div class="sr-row">
+          <span>Khung giờ & Ngày hẹn:</span>
+          <strong id="modalDateTime">09:30 · Ngày 26/09/2026</strong>
+        </div>
+        <div class="sr-row">
+          <span>Dịch vụ khám:</span>
+          <strong id="modalService">Khám sức khỏe tổng quát</strong>
+        </div>
+        <div class="sr-row">
+          <span>Bác sĩ phụ trách:</span>
+          <strong id="modalDoctor">BS. Trần Thảo Vy</strong>
+        </div>
+        <div class="sr-row">
+          <span>Cơ sở phòng khám:</span>
+          <strong id="modalClinic">Cơ sở Thảo Điền (TP. Thủ Đức)</strong>
+        </div>
+        <div class="sr-row" style="padding-top: 0.65rem; border-top: 1px dashed var(--border-light);">
+          <span>Chi phí tạm tính:</span>
+          <strong style="font-size: 1.15rem; color: var(--teal-dark);" id="modalPrice">250,000 đ</strong>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 0.75rem;">
+        <button class="btn btn-outline" style="flex: 1;" onclick="closeBookingModal()">Đóng cửa sổ</button>
+        <a href="admin.html" class="btn btn-primary" style="flex: 1.2;">Xem trên Bàn Điều Phối →</a>
+      </div>
+    </div>
+  </div>
 
   <script src="client.js"></script>
 </body>

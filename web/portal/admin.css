@@ -3,8 +3,8 @@
    Design System: Enterprise Medical SaaS / Clean Clinical Workstation
    ======================================================== */
 :root {
-  --font-heading: 'Outfit', sans-serif;
-  --font-body: 'Plus Jakarta Sans', sans-serif;
+  --font-heading: 'Be Vietnam Pro', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Be Vietnam Pro', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
 
   /* Clinical SaaS Palette */
   --bg-app: #F8FAFC;
@@ -758,3 +758,123 @@ body {
   margin-top: 0.35rem;
   border-top: 1px solid var(--border-color);
 }
+
+/* ========================================================
+   ADMIN MODALS & TOAST NOTIFICATIONS
+   ======================================================== */
+.admin-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(6px);
+  z-index: 10000;
+  place-items: center;
+  padding: 1.5rem;
+}
+
+.admin-modal-overlay.active {
+  display: grid;
+}
+
+.admin-modal-box {
+  background: #FFFFFF;
+  border-radius: var(--radius-lg);
+  max-width: 580px;
+  width: 100%;
+  padding: 2rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+  animation: adminPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+@keyframes adminPop {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+/* VietQR Modal Box */
+.qr-modal-body {
+  text-align: center;
+}
+
+.qr-code-img {
+  width: 220px;
+  height: 220px;
+  margin: 1.25rem auto;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.5rem;
+  background: #FFFFFF;
+  display: grid;
+  place-items: center;
+  background-image: repeating-conic-gradient(#0F172A 0% 25%, #fff 0% 50%);
+  background-size: 10px 10px;
+}
+
+/* Prescription Preview Document */
+.rx-doc {
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.rx-doc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--teal-primary);
+  margin-bottom: 1.25rem;
+}
+
+/* Toast Notifications */
+.admin-toast-shelf {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 10001;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  pointer-events: none;
+}
+
+.admin-toast-item {
+  pointer-events: auto;
+  min-width: 320px;
+  max-width: 420px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--teal-primary);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1.15rem;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  animation: adminSlideToast 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes adminSlideToast {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.admin-toast-item.success { border-left-color: var(--emerald-primary); }
+.admin-toast-item.warning { border-left-color: var(--amber-primary); }
+.admin-toast-item.info    { border-left-color: var(--blue-primary); }

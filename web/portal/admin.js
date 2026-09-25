@@ -245,7 +245,8 @@ function switchAdminTab(tabId) {
 function changeAdminClinic(clinicVal) {
   adminState.currentClinic = clinicVal;
   renderKanbanBoard();
-  alert(`📍 Đã chuyển môi trường làm việc sang: ${document.querySelector(`#adminClinicSelect option[value="${clinicVal}"]`).textContent}`);
+  const clinicText = document.querySelector(`#adminClinicSelect option[value="${clinicVal}"]`).textContent;
+  showAdminToast('📍 Đổi Chi Nhánh', `Đã chuyển môi trường sang: ${clinicText}`, 'info');
 }
 
 /* ========================================================
@@ -369,6 +370,13 @@ function updateApptStatus(id, nextStatus) {
   appt.status = nextStatus;
   renderKanbanBoard();
 
+  const labels = {
+    waiting: `Bé ${appt.petName} đã check-in qua Kiosk!`,
+    'in-progress': `Bé ${appt.petName} đã vào ${appt.room}.`,
+    completed: `Đã hoàn tất ca khám cho ${appt.petName}, chuyển dữ liệu sang quầy Thu ngân POS.`
+  };
+  showAdminToast('📋 Điều Phối', labels[nextStatus] || 'Đã cập nhật trạng thái', 'success');
+
   if (nextStatus === 'in-progress') {
     openSoapForAppt(id);
   }
@@ -395,7 +403,7 @@ function triggerSimulatedAppointment() {
 
   adminState.appointments.unshift(newAppt);
   renderKanbanBoard();
-  alert(`🔔 SIGNALR EVENT: Khách hàng mới vừa đặt lịch hẹn cho bé ${name}! (Lịch đã hiển thị tại cột 'ĐÃ ĐẶT HẸN')`);
+  showAdminToast('🔔 SignalR Push', `Khách hàng mới vừa đặt lịch cho bé ${name}!`, 'info');
 }
 
 function filterKanbanRoom(val) {
@@ -419,13 +427,11 @@ function loadSoapPatient(id) {
   document.getElementById('soapBreed').textContent = `${appt.breed} (${appt.weight} kg)`;
   document.getElementById('vitalW').value = appt.weight;
 
-  // Auto calculate dosage based on weight
   autoCalculateDosage(appt.weight);
+  showAdminToast('🩺 Hồ Sơ Bệnh Án', `Đã nạp dữ liệu ca khám của bé ${appt.petName} (${appt.weight}kg)`, 'info');
 }
 
 function autoCalculateDosage(weight) {
-  const w = parseFloat(weight) || 4.0;
-  // Recalculate based on weight
   renderSoapRxTable();
 }
 
@@ -467,6 +473,7 @@ function addSoapRxRow() {
     price: 160000
   });
   renderSoapRxTable();
+  showAdminToast('💊 Thêm Thuốc', 'Đã thêm dòng dược phẩm mới vào toa.', 'info');
 }
 
 function removeSoapRxRow(idx) {
@@ -475,24 +482,40 @@ function removeSoapRxRow(idx) {
 }
 
 function printPrescription() {
-  window.print();
+  const petName = document.getElementById('soapName').textContent;
+  const weight = document.getElementById('vitalW').value;
+  document.getElementById('rxDocPet').textContent = `${petName} (${weight} kg)`;
+  document.getElementById('rxDocWeight').textContent = `${weight} kg`;
+  
+  const tbody = document.getElementById('rxDocItemsBody');
+  tbody.innerHTML = soapRxItems.map(item => `
+    <tr>
+      <td><strong>${item.name}</strong></td>
+      <td>${item.dosePerKg} mg/kg</td>
+      <td>${item.qty} đơn vị</td>
+      <td>${item.usage}</td>
+    </tr>
+  `).join('');
+
+  document.getElementById('rxModal').classList.add('active');
 }
 
 function saveSoapAndPushToPos() {
-  alert('💾 ĐÃ LƯU BỆNH ÁN!\n\nHồ sơ khám bệnh chuẩn SOAP và đơn thuốc điện tử đã được khóa an toàn, đồng bộ sang quầy Thu ngân POS để lập hóa đơn.');
+  showAdminToast('💾 Đã Lưu Bệnh Án', 'Hồ sơ SOAP và đơn thuốc đã chuyển tự động sang quầy Thu Ngân POS!', 'success');
   
-  // Also push to POS Cart
   adminState.posItems = [
     { id: 1, name: 'Khám Bệnh Lâm Sàng (BS. Vy)', qty: 1, price: 250000 },
     { id: 2, name: 'Kháng sinh Clavamox 62.5mg (Đơn thuốc)', qty: 1, price: 185000 }
   ];
   renderPosCart();
-  switchAdminTab('pos');
+  setTimeout(() => switchAdminTab('pos'), 500);
 }
 
 /* ========================================================
    3. FEFO INVENTORY & CASHIER POS (TASK-32)
    ======================================================== */
+let selectedPaymentMethod = 'qr';
+
 function openPosForAppt(id) {
   switchAdminTab('pos');
   const appt = adminState.appointments.find(a => a.id === id);
@@ -526,6 +549,7 @@ function renderPosPendingOrders() {
 function selectPendingPosOrder(id, pet, owner) {
   document.getElementById('posCustName').textContent = owner;
   document.getElementById('posPet').textContent = pet;
+  showAdminToast('🧾 Nạp Hóa Đơn', `Đã tải đơn ca khám #${id} của bé ${pet}`, 'info');
 }
 
 function addPosItem(name, price) {
@@ -536,6 +560,7 @@ function addPosItem(name, price) {
     price: price
   });
   renderPosCart();
+  showAdminToast('🛍️ Thêm Hàng', `Đã thêm [${name}] vào hóa đơn.`, 'info');
 }
 
 function renderPosCart() {
@@ -578,6 +603,7 @@ function toggleStars(checked) {
 }
 
 function selectPay(btn, method) {
+  selectedPaymentMethod = method;
   document.querySelectorAll('#sec-pos .btn-outline').forEach(b => {
     b.style.borderColor = 'var(--border-color)';
     b.style.background = '#FFFFFF';
@@ -590,12 +616,30 @@ function selectPay(btn, method) {
 
 function processAdminCheckout() {
   if (adminState.posItems.length === 0) {
-    alert('⚠️ Giỏ hàng hiện đang trống!');
+    showAdminToast('⚠️ Giỏ Hàng Trống', 'Vui lòng chọn ca khám hoặc thêm dịch vụ để thanh toán.', 'warning');
     return;
   }
 
-  const invoiceNo = `HD-2026-${Math.floor(10000 + Math.random() * 90000)}`;
-  
+  const invoiceNo = document.getElementById('posInvCode').textContent;
+  const totalText = document.getElementById('posTotal').textContent;
+
+  if (selectedPaymentMethod === 'qr') {
+    // Open VietQR Dialog
+    document.getElementById('qrModalAmount').textContent = totalText;
+    document.getElementById('qrModalMemo').textContent = `FURINA ${invoiceNo}`;
+    document.getElementById('qrModal').classList.add('active');
+  } else {
+    finishPayment(invoiceNo);
+  }
+}
+
+function confirmQrPaid() {
+  closeAdminModal('qrModal');
+  const invoiceNo = document.getElementById('posInvCode').textContent;
+  finishPayment(invoiceNo);
+}
+
+function finishPayment(invoiceNo) {
   // FEFO stock deduction
   const clavamox = adminState.inventory.find(i => i.batchNo === 'BAT-2026-0041');
   if (clavamox && clavamox.stock > 0) {
@@ -603,7 +647,11 @@ function processAdminCheckout() {
     renderAdminInventoryTable('all');
   }
 
-  alert(`⚡ THANH TOÁN THÀNH CÔNG!\n\n• Mã hóa đơn: ${invoiceNo}\n• Đã xuất biên lai thanh toán\n• Tự động trừ tồn kho theo lô FEFO (Lô ${clavamox ? clavamox.batchNo : 'BAT-01'})\n• Đã cộng điểm thưởng Furina Stars cho khách hàng.`);
+  showAdminToast(
+    '⚡ Thanh Toán Thành Công',
+    `Hóa đơn ${invoiceNo} đã thanh toán! Đã trừ 1 đơn vị Lô FEFO ${clavamox ? clavamox.batchNo : 'BAT-01'} và tích điểm Stars.`,
+    'success'
+  );
 
   adminState.posItems = [];
   renderPosCart();
@@ -657,7 +705,7 @@ function deductInvStock(batchNo) {
   if (item && item.stock > 0) {
     item.stock -= 1;
     renderAdminInventoryTable('all');
-    alert(`📦 Đã xuất 1 đơn vị từ lô ${batchNo}. Tồn kho còn lại: ${item.stock} đơn vị.`);
+    showAdminToast('📦 Xuất Kho FEFO', `Đã xuất 1 đơn vị Lô ${batchNo}. Tồn kho còn: ${item.stock} đơn vị.`, 'info');
   }
 }
 
@@ -680,7 +728,7 @@ function exportAuditReport() {
   link.click();
   document.body.removeChild(link);
 
-  alert('📥 Đã xuất báo cáo tài chính toàn chuỗi sang định dạng CSV.');
+  showAdminToast('📥 Xuất File', 'Đã tải xuống file CSV báo cáo tài chính toàn chuỗi.', 'success');
 }
 
 /* ========================================================
@@ -696,4 +744,47 @@ async function checkBackendHealth() {
   } catch (err) {
     if (label) label.textContent = 'API .NET 8: Port 8080 (Docker Active)';
   }
+}
+
+/* ========================================================
+   7. MODAL & TOAST HELPERS
+   ======================================================== */
+function closeAdminModal(id) {
+  const modal = document.getElementById(id);
+  if (modal) modal.classList.remove('active');
+}
+
+function showAdminToast(title, msg, type = 'info') {
+  let shelf = document.getElementById('adminToastShelf');
+  if (!shelf) {
+    shelf = document.createElement('div');
+    shelf.id = 'adminToastShelf';
+    shelf.className = 'admin-toast-shelf';
+    document.body.appendChild(shelf);
+  }
+
+  const icons = {
+    success: '✓',
+    warning: '⚠️',
+    info: '✨'
+  };
+
+  const toast = document.createElement('div');
+  toast.className = `admin-toast-item ${type}`;
+  toast.innerHTML = `
+    <div style="font-weight: 800; font-size: 1.1rem; color: var(--teal-dark);">${icons[type] || '✨'}</div>
+    <div style="flex: 1;">
+      <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-main);">${title}</div>
+      <div style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.35;">${msg}</div>
+    </div>
+  `;
+
+  shelf.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(20px)';
+    toast.style.transition = 'all 0.2s ease';
+    setTimeout(() => toast.remove(), 200);
+  }, 3500);
 }

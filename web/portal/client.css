@@ -3,8 +3,8 @@
    Design System: Warm Medical & Clean Wellness Aesthetic
    ======================================================== */
 :root {
-  --font-heading: 'Outfit', sans-serif;
-  --font-body: 'Plus Jakarta Sans', sans-serif;
+  --font-heading: 'Be Vietnam Pro', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Be Vietnam Pro', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
 
   /* Clean Warm Medical Palette */
   --bg-page: #F8FAF9;
@@ -863,4 +863,156 @@ body {
   justify-content: space-between;
   align-items: center;
   font-size: 0.82rem;
+}
+
+/* ========================================================
+   MODALS, TOASTS & MICRO-INTERACTIONS
+   ======================================================== */
+/* Toast Notifications */
+.toast-shelf {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+.toast-msg {
+  pointer-events: auto;
+  min-width: 320px;
+  max-width: 440px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-left: 4px solid var(--teal-primary);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  animation: slideUpToast 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUpToast {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.t-icon { font-size: 1.4rem; line-height: 1; }
+.t-body h5 { font-family: var(--font-heading); font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.2rem; }
+.t-body p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.45; }
+
+/* Booking Success Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(6px);
+  z-index: 10000;
+  place-items: center;
+  padding: 1.5rem;
+}
+
+.modal-overlay.active {
+  display: grid;
+}
+
+.modal-dialog {
+  background: #FFFFFF;
+  border-radius: var(--radius-lg);
+  max-width: 520px;
+  width: 100%;
+  padding: 2.25rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-hero-icon {
+  width: 64px;
+  height: 64px;
+  background: var(--emerald-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin: 0 auto 1.25rem;
+}
+
+.summary-receipt {
+  background: #F8FAFC;
+  border: 1px dashed var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin: 1.25rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  font-size: 0.88rem;
+}
+
+.sr-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.sr-row span { color: var(--text-muted); }
+.sr-row strong { color: var(--text-main); font-weight: 600; }
+
+/* QR Watermark on Passport */
+.qr-watermark {
+  width: 44px;
+  height: 44px;
+  background: #FFFFFF;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  background-image: repeating-conic-gradient(#0F766E 0% 25%, #fff 0% 50%);
+  background-size: 8px 8px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+/* Pet Type Segmented Switcher */
+.pet-type-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 1.15rem;
+}
+
+.pet-type-btn {
+  padding: 0.65rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+  background: #F8FAFC;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-body);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: var(--transition);
+}
+
+.pet-type-btn:hover {
+  background: #F1F5F9;
+  border-color: #CBD5E1;
+}
+
+.pet-type-btn.active {
+  background: var(--teal-light);
+  border-color: var(--teal-primary);
+  color: var(--teal-dark);
 }

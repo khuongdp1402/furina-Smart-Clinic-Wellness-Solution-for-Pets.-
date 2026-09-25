@@ -159,5 +159,67 @@ function handleClientBooking(e) {
   stored.unshift(newAppointment);
   localStorage.setItem('furina_custom_appts', JSON.stringify(stored));
 
-  alert(`🎉 ĐẶT LỊCH THÀNH CÔNG!\n\n• Mã phiếu hẹn: #${apptId}\n• Thú cưng: ${petName}\n• Khung giờ: ${currentSelectedSlot} ngày ${date}\n• Bác sĩ: ${doctor}\n• Cơ sở: ${clinicName}\n\nThông tin đã được đồng bộ trực tiếp tới Bàn Điều Phối của Phòng Khám.`);
+  // Open modern modal
+  showBookingSuccessModal(newAppointment);
+  showClientToast('🎉 Đặt lịch thành công', `Mã phiếu hẹn #${apptId} đã gửi tới Bàn điều phối.`, '📅');
+}
+
+function showBookingSuccessModal(appt) {
+  const modal = document.getElementById('bookingModal');
+  if (!modal) return;
+
+  document.getElementById('modalApptCode').textContent = `#${appt.id}`;
+  document.getElementById('modalPetInfo').textContent = `${appt.petName} (${appt.breed})`;
+  document.getElementById('modalDateTime').textContent = `${appt.time} · Ngày ${appt.date}`;
+  document.getElementById('modalDoctor').textContent = appt.doctor;
+  document.getElementById('modalService').textContent = appt.service;
+  document.getElementById('modalClinic').textContent = appt.clinic;
+  document.getElementById('modalPrice').textContent = appt.cost.toLocaleString('vi-VN') + ' đ';
+
+  modal.classList.add('active');
+}
+
+function closeBookingModal() {
+  const modal = document.getElementById('bookingModal');
+  if (modal) modal.classList.remove('active');
+}
+
+function setPetType(type) {
+  document.querySelectorAll('.pet-type-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-type') === type);
+  });
+  const typeSelect = document.getElementById('clientPetType');
+  if (typeSelect) {
+    typeSelect.value = type;
+    updateServicePrice();
+  }
+}
+
+function showClientToast(title, msg, icon = '✨') {
+  let shelf = document.getElementById('clientToastShelf');
+  if (!shelf) {
+    shelf = document.createElement('div');
+    shelf.id = 'clientToastShelf';
+    shelf.className = 'toast-shelf';
+    document.body.appendChild(shelf);
+  }
+
+  const toast = document.createElement('div');
+  toast.className = 'toast-msg';
+  toast.innerHTML = `
+    <div class="t-icon">${icon}</div>
+    <div class="t-body">
+      <h5>${title}</h5>
+      <p>${msg}</p>
+    </div>
+  `;
+
+  shelf.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(15px)';
+    toast.style.transition = 'all 0.25s ease';
+    setTimeout(() => toast.remove(), 250);
+  }, 4000);
 }
