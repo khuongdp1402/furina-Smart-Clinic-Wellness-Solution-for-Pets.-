@@ -19,7 +19,7 @@ public class Appointment : ITenantScoped
     public Guid? VetUserId { get; set; }
     public DateTimeOffset StartTime { get; set; }
     public DateTimeOffset EndTime { get; set; }
-    public string Status { get; set; } = "Scheduled";
+    public string Status { get; set; } = AppointmentStatuses.Booked;
 
     public Clinic Clinic { get; set; } = null!;
     public Pet Pet { get; set; } = null!;

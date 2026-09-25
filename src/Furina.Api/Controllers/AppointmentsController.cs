@@ -11,6 +11,14 @@ namespace Furina.Api.Controllers;
 
 public record CreateAppointmentRequest(Guid PetId, Guid ClinicId, Guid ServiceCatalogId, Guid? VetUserId, DateTimeOffset StartTime);
 
+public record ChangeStatusRequest(string ToStatus, string? Reason);
+
+public record StatusAuditLogResponse(Guid Id, string FromStatus, string ToStatus, Guid ChangedByUserId, DateTimeOffset ChangedAt, string? Reason)
+{
+    public static StatusAuditLogResponse From(AppointmentStatusAuditLog a) => new(
+        a.Id, a.FromStatus, a.ToStatus, a.ChangedByUserId, a.ChangedAt, a.Reason);
+}
+
 public record AppointmentResponse(
     Guid Id, Guid ClinicId, Guid PetId, Guid? ServiceCatalogId, Guid? VetUserId,
     DateTimeOffset StartTime, DateTimeOffset EndTime, string Status)
@@ -73,7 +81,7 @@ public class AppointmentsController(FurinaDbContext db, ITenantContext tenantCon
         await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtext({lockKey})::bigint)", ct);
 
         var overlapQuery = db.Appointments.Where(a =>
-            a.Status != "Cancelled" &&
+            a.Status != AppointmentStatuses.Cancelled &&
             request.StartTime < a.EndTime && endTime > a.StartTime);
         overlapQuery = request.VetUserId is { } vetId
             ? overlapQuery.Where(a => a.VetUserId == vetId)
@@ -116,6 +124,61 @@ public class AppointmentsController(FurinaDbContext db, ITenantContext tenantCon
         if (!IsStaff() && appointment.Pet.OwnerId != CurrentUserId()) return Forbid();
 
         return AppointmentResponse.From(appointment);
+    }
+
+    /// <summary>
+    /// TASK-23: the ONLY place an appointment's status ever changes. The
+    /// current status is always read fresh from the DB — never trusted
+    /// from the request — and checked against
+    /// <see cref="AppointmentStatusRules"/> before anything is written;
+    /// staff-only (a customer can't self-mark their visit "Completed").
+    /// </summary>
+    [HttpPost("{id:guid}/status")]
+    public async Task<ActionResult<AppointmentResponse>> ChangeStatus(Guid id, ChangeStatusRequest request, CancellationToken ct)
+    {
+        if (!IsStaff()) return Forbid();
+
+        var appointment = await db.Appointments.FirstOrDefaultAsync(a => a.Id == id, ct);
+        if (appointment is null) return NotFound();
+
+        var from = appointment.Status;
+        if (!AppointmentStatusRules.CanTransition(from, request.ToStatus))
+        {
+            return BadRequest(new
+            {
+                error = "invalid_transition",
+                detail = $"Không thể chuyển từ {from} sang {request.ToStatus} (thiếu bước trung gian, hoặc {from} là trạng thái cuối).",
+            });
+        }
+
+        if (AppointmentStatusRules.RequiresReason(request.ToStatus) && string.IsNullOrWhiteSpace(request.Reason))
+        {
+            return BadRequest(new { error = "reason_required", detail = "Huỷ lịch hẹn cần nêu lý do." });
+        }
+
+        appointment.Status = request.ToStatus;
+        db.AppointmentStatusAuditLogs.Add(new AppointmentStatusAuditLog
+        {
+            TenantId = tenantContext.TenantId!.Value,
+            AppointmentId = id,
+            FromStatus = from,
+            ToStatus = request.ToStatus,
+            ChangedByUserId = CurrentUserId(),
+            Reason = request.Reason,
+        });
+        await db.SaveChangesAsync(ct);
+
+        return AppointmentResponse.From(appointment);
+    }
+
+    [HttpGet("{id:guid}/status-history")]
+    public async Task<ActionResult<List<StatusAuditLogResponse>>> StatusHistory(Guid id, CancellationToken ct)
+    {
+        var logs = await db.AppointmentStatusAuditLogs
+            .Where(l => l.AppointmentId == id)
+            .OrderBy(l => l.ChangedAt)
+            .ToListAsync(ct);
+        return logs.Select(StatusAuditLogResponse.From).ToList();
     }
 
     private Guid CurrentUserId() =>

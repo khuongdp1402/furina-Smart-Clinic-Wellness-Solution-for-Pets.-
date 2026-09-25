@@ -26,6 +26,7 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
     public DbSet<VaccinationRecord> VaccinationRecords => Set<VaccinationRecord>();
     public DbSet<NotificationLog> NotificationLogs => Set<NotificationLog>();
     public DbSet<Prescription> Prescriptions => Set<Prescription>();
+    public DbSet<AppointmentStatusAuditLog> AppointmentStatusAuditLogs => Set<AppointmentStatusAuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -365,6 +366,25 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
                 .HasForeignKey(x => x.VisitId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.Pet).WithMany()
                 .HasForeignKey(x => x.PetId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Tenant).WithMany()
+                .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<AppointmentStatusAuditLog>(e =>
+        {
+            e.ToTable("appointment_status_audit_logs");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id").IsRequired();
+            e.Property(x => x.AppointmentId).HasColumnName("appointment_id").IsRequired();
+            e.Property(x => x.FromStatus).HasColumnName("from_status").IsRequired();
+            e.Property(x => x.ToStatus).HasColumnName("to_status").IsRequired();
+            e.Property(x => x.ChangedByUserId).HasColumnName("changed_by_user_id").IsRequired();
+            e.Property(x => x.ChangedAt).HasColumnName("changed_at");
+            e.Property(x => x.Reason).HasColumnName("reason");
+            e.HasIndex(x => x.AppointmentId);
+            e.HasOne(x => x.Appointment).WithMany()
+                .HasForeignKey(x => x.AppointmentId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(x => x.Tenant).WithMany()
                 .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
         });
