@@ -28,6 +28,8 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
     public DbSet<Prescription> Prescriptions => Set<Prescription>();
     public DbSet<AppointmentStatusAuditLog> AppointmentStatusAuditLogs => Set<AppointmentStatusAuditLog>();
     public DbSet<AppointmentReminderLog> AppointmentReminderLogs => Set<AppointmentReminderLog>();
+    public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
+    public DbSet<InventoryBatch> InventoryBatches => Set<InventoryBatch>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -401,6 +403,42 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
             e.HasIndex(x => x.AppointmentId).IsUnique();
             e.HasOne(x => x.Appointment).WithMany()
                 .HasForeignKey(x => x.AppointmentId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Tenant).WithMany()
+                .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<InventoryItem>(e =>
+        {
+            e.ToTable("inventory_items");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id").IsRequired();
+            e.Property(x => x.ClinicId).HasColumnName("clinic_id").IsRequired();
+            e.Property(x => x.Name).HasColumnName("name").IsRequired();
+            e.Property(x => x.Unit).HasColumnName("unit");
+            e.HasIndex(x => x.ClinicId);
+            e.HasOne(x => x.Clinic).WithMany()
+                .HasForeignKey(x => x.ClinicId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Tenant).WithMany()
+                .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<InventoryBatch>(e =>
+        {
+            e.ToTable("inventory_batches");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id").IsRequired();
+            e.Property(x => x.InventoryItemId).HasColumnName("inventory_item_id").IsRequired();
+            e.Property(x => x.BatchNo).HasColumnName("batch_no");
+            e.Property(x => x.ExpiryDate).HasColumnName("expiry_date");
+            e.Property(x => x.ReceivedDate).HasColumnName("received_date");
+            e.Property(x => x.QuantityRemaining).HasColumnName("quantity_remaining");
+            // FEFO's core query is "batches for item X, soonest expiry
+            // first" — this index serves exactly that access pattern.
+            e.HasIndex(x => new { x.InventoryItemId, x.ExpiryDate });
+            e.HasOne(x => x.InventoryItem).WithMany(i => i.Batches)
+                .HasForeignKey(x => x.InventoryItemId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(x => x.Tenant).WithMany()
                 .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
         });
