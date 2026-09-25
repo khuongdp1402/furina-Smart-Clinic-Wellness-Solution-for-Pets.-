@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json.Serialization;
 using Furina.Api.Auth;
+using Furina.Api.Config;
 using Furina.Infrastructure.Auth;
 using Furina.Infrastructure.MultiTenancy;
 using Furina.Infrastructure.Persistence;
@@ -36,6 +37,7 @@ builder.Services.AddDbContext<FurinaDbContext>((sp, options) =>
 
 // --- Auth (TASK-12) ---
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+builder.Services.Configure<MedicalRecordOptions>(builder.Configuration.GetSection(MedicalRecordOptions.SectionName));
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()

@@ -20,6 +20,9 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
     public DbSet<ClinicServicePrice> ClinicServicePrices => Set<ClinicServicePrice>();
     public DbSet<Pet> Pets => Set<Pet>();
     public DbSet<PetWeightLog> PetWeightLogs => Set<PetWeightLog>();
+    public DbSet<Visit> Visits => Set<Visit>();
+    public DbSet<MedicalRecord> MedicalRecords => Set<MedicalRecord>();
+    public DbSet<MedicalRecordAuditLog> MedicalRecordAuditLogs => Set<MedicalRecordAuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -213,6 +216,73 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
             e.HasIndex(x => new { x.PetId, x.MeasuredAt });
             e.HasOne(x => x.Pet).WithMany(p => p.WeightLogs)
                 .HasForeignKey(x => x.PetId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Tenant).WithMany()
+                .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Visit>(e =>
+        {
+            e.ToTable("visits");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id").IsRequired();
+            e.Property(x => x.PetId).HasColumnName("pet_id").IsRequired();
+            e.Property(x => x.ClinicId).HasColumnName("clinic_id").IsRequired();
+            e.Property(x => x.VetUserId).HasColumnName("vet_user_id").IsRequired();
+            e.Property(x => x.VisitDate).HasColumnName("visit_date");
+            e.HasIndex(x => x.PetId);
+            e.HasOne(x => x.Pet).WithMany()
+                .HasForeignKey(x => x.PetId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Clinic).WithMany()
+                .HasForeignKey(x => x.ClinicId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.VetUser).WithMany()
+                .HasForeignKey(x => x.VetUserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Tenant).WithMany()
+                .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<MedicalRecord>(e =>
+        {
+            e.ToTable("medical_records");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id").IsRequired();
+            e.Property(x => x.VisitId).HasColumnName("visit_id").IsRequired();
+            e.Property(x => x.PetId).HasColumnName("pet_id").IsRequired();
+            e.Property(x => x.VetUserId).HasColumnName("vet_user_id").IsRequired();
+            e.Property(x => x.Subjective).HasColumnName("subjective");
+            e.Property(x => x.Objective).HasColumnName("objective");
+            e.Property(x => x.Assessment).HasColumnName("assessment");
+            e.Property(x => x.Plan).HasColumnName("plan");
+            e.Property(x => x.CreatedAt).HasColumnName("created_at");
+            e.HasIndex(x => x.VisitId).IsUnique();
+            e.HasIndex(x => x.PetId);
+            e.HasOne(x => x.Visit).WithMany()
+                .HasForeignKey(x => x.VisitId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Pet).WithMany()
+                .HasForeignKey(x => x.PetId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.VetUser).WithMany()
+                .HasForeignKey(x => x.VetUserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Tenant).WithMany()
+                .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<MedicalRecordAuditLog>(e =>
+        {
+            e.ToTable("medical_record_audit_logs");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id").IsRequired();
+            e.Property(x => x.MedicalRecordId).HasColumnName("medical_record_id").IsRequired();
+            e.Property(x => x.ChangedByUserId).HasColumnName("changed_by_user_id").IsRequired();
+            e.Property(x => x.ChangedAt).HasColumnName("changed_at");
+            e.Property(x => x.PreviousSubjective).HasColumnName("previous_subjective");
+            e.Property(x => x.PreviousObjective).HasColumnName("previous_objective");
+            e.Property(x => x.PreviousAssessment).HasColumnName("previous_assessment");
+            e.Property(x => x.PreviousPlan).HasColumnName("previous_plan");
+            e.HasIndex(x => x.MedicalRecordId);
+            e.HasOne(x => x.MedicalRecord).WithMany()
+                .HasForeignKey(x => x.MedicalRecordId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(x => x.Tenant).WithMany()
                 .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
         });
