@@ -141,14 +141,22 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
             e.Property(x => x.Id).HasColumnName("id");
             e.Property(x => x.TenantId).HasColumnName("tenant_id").IsRequired();
             e.Property(x => x.ClinicId).HasColumnName("clinic_id").IsRequired();
+            e.Property(x => x.PetId).HasColumnName("pet_id").IsRequired();
             e.Property(x => x.ServiceCatalogId).HasColumnName("service_catalog_id");
-            e.Property(x => x.ScheduledAt).HasColumnName("scheduled_at");
+            e.Property(x => x.VetUserId).HasColumnName("vet_user_id");
+            e.Property(x => x.StartTime).HasColumnName("start_time");
+            e.Property(x => x.EndTime).HasColumnName("end_time");
             e.Property(x => x.Status).HasColumnName("status").IsRequired();
-            e.HasIndex(x => new { x.ClinicId, x.ScheduledAt });
+            e.HasIndex(x => new { x.ClinicId, x.StartTime });
+            e.HasIndex(x => new { x.VetUserId, x.StartTime });
             e.HasOne(x => x.Clinic).WithMany()
                 .HasForeignKey(x => x.ClinicId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Pet).WithMany()
+                .HasForeignKey(x => x.PetId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.ServiceCatalog).WithMany()
                 .HasForeignKey(x => x.ServiceCatalogId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.VetUser).WithMany()
+                .HasForeignKey(x => x.VetUserId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.Tenant).WithMany()
                 .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
         });

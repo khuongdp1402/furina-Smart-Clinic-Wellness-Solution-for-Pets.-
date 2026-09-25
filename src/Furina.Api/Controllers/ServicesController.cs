@@ -87,7 +87,7 @@ public class ServicesController(FurinaDbContext db, ITenantContext tenantContext
         if (service is null) return NotFound();
 
         var hasFutureAppointments = await db.Appointments
-            .AnyAsync(a => a.ServiceCatalogId == id && a.ScheduledAt > DateTimeOffset.UtcNow, ct);
+            .AnyAsync(a => a.ServiceCatalogId == id && a.StartTime > DateTimeOffset.UtcNow, ct);
 
         if (hasFutureAppointments)
         {

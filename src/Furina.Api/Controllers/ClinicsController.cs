@@ -118,7 +118,7 @@ public class ClinicsController(FurinaDbContext db, ITenantContext tenantContext)
         // deleted — archive it instead so the appointment history it's
         // still referenced by stays intact.
         var hasFutureAppointments = await db.Appointments
-            .AnyAsync(a => a.ClinicId == id && a.ScheduledAt > DateTimeOffset.UtcNow, ct);
+            .AnyAsync(a => a.ClinicId == id && a.StartTime > DateTimeOffset.UtcNow, ct);
 
         if (hasFutureAppointments)
         {
