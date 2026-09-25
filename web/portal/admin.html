@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FURINA — Hệ Thống Quản Trị & Bệnh Án Điện Tử (Clinical Workstation)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+  <!-- 1. Fixed Left Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-brand">
+      <div class="s-brand-icon">🐾</div>
+      <div class="s-brand-text">
+        <h2>FURINA VET</h2>
+        <span>Phần Mềm Quản Trị Y Tế</span>
+      </div>
+    </div>
+
+    <!-- Clinic Branch Selector -->
+    <div class="sidebar-clinic-box">
+      <label>Chi Nhánh Phòng Khám:</label>
+      <select class="sidebar-clinic-select" id="adminClinicSelect" onchange="changeAdminClinic(this.value)">
+        <option value="cli-2" selected>Cơ sở 2: Thảo Điền (Thủ Đức)</option>
+        <option value="cli-1">Cơ sở 1: Hai Bà Trưng (Quận 1)</option>
+        <option value="cli-3">Cơ sở 3: Phú Mỹ Hưng (Quận 7)</option>
+      </select>
+    </div>
+
+    <!-- Navigation Menu Items -->
+    <nav class="sidebar-menu">
+      <div class="menu-category-lbl">Vận Hành Khám Bệnh</div>
+
+      <button class="nav-item active" data-tab="dispatch" onclick="switchAdminTab('dispatch')">
+        <span><span class="icon">📋</span> Bàn Điều Phối</span>
+        <span class="nav-badge" id="badgeWaiting">2</span>
+      </button>
+
+      <button class="nav-item" data-tab="soap" onclick="switchAdminTab('soap')">
+        <span><span class="icon">🩺</span> Bệnh Án SOAP & Kê Đơn</span>
+      </button>
+
+      <div class="menu-category-lbl">Thu Ngân & Dược Phẩm</div>
+
+      <button class="nav-item" data-tab="pos" onclick="switchAdminTab('pos')">
+        <span><span class="icon">💳</span> Thu Ngân & Hóa Đơn (POS)</span>
+        <span class="nav-badge danger" id="badgePendingPos">3</span>
+      </button>
+
+      <button class="nav-item" data-tab="inventory" onclick="switchAdminTab('inventory')">
+        <span><span class="icon">📦</span> Kho Dược Theo Lô FEFO</span>
+      </button>
+
+      <div class="menu-category-lbl">Quản Trị Chuỗi</div>
+
+      <button class="nav-item" data-tab="superadmin" onclick="switchAdminTab('superadmin')">
+        <span><span class="icon">👑</span> Super Admin Toàn Chuỗi</span>
+      </button>
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+      <a href="index.html" class="btn-back-client">
+        <span>← Về Cổng Khách Hàng</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- 2. Main Admin Workspace -->
+  <main class="admin-workspace">
+    <!-- Top Workspace Header -->
+    <header class="workspace-header">
+      <div class="header-title-box">
+        <h2 id="currentTabTitle">Bàn Điều Phối Khám Bệnh & Spa (Realtime Dispatch)</h2>
+        <p id="currentTabSubtitle">Theo dõi lịch hẹn theo thời gian thực qua SignalR Hub, phân bổ buồng khám và điều phối hàng đợi</p>
+      </div>
+
+      <div class="header-status-box">
+        <div class="api-health-pill">
+          <span class="health-dot"></span>
+          <span id="apiStatusLabel">API .NET 8 Docker: Online</span>
+        </div>
+
+        <div class="staff-pill">
+          <div class="staff-avatar">VY</div>
+          <div class="staff-info">
+            <span class="staff-name">BS. Trần Thảo Vy</span>
+            <span class="staff-role">Trưởng Khoa Lâm Sàng</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Workspace Scrollable Content -->
+    <div class="workspace-content">
+
+      <!-- ======================================================== -->
+      <!-- TAB 1: BÀN ĐIỀU PHỐI (DISPATCH KANBAN - TASK-30)          -->
+      <!-- ======================================================== -->
+      <section class="admin-section active" id="sec-dispatch">
+        <!-- Realtime KPI Row -->
+        <div class="kpi-row">
+          <div class="kpi-box">
+            <div class="kpi-num" style="color: var(--teal-dark);" id="kpiTotal">12</div>
+            <div class="kpi-title">Tổng ca khám hôm nay</div>
+          </div>
+          <div class="kpi-box">
+            <div class="kpi-num" style="color: #D97706;" id="kpiWait">3</div>
+            <div class="kpi-title">Đã check-in / Chờ khám</div>
+          </div>
+          <div class="kpi-box">
+            <div class="kpi-num" style="color: var(--teal-primary);" id="kpiInRoom">2</div>
+            <div class="kpi-title">Đang trong buồng khám/spa</div>
+          </div>
+          <div class="kpi-box">
+            <div class="kpi-num" style="color: #059669;" id="kpiDone">7</div>
+            <div class="kpi-title">Đã hoàn thành / Chờ POS</div>
+          </div>
+        </div>
+
+        <!-- Kanban Board Controls -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Lọc theo phòng:</span>
+            <select class="form-control" style="width: 220px;" onchange="filterKanbanRoom(this.value)">
+              <option value="all">Tất cả các phòng khám & Spa</option>
+              <option value="room-1">Phòng Khám Lâm Sàng 01</option>
+              <option value="room-2">Phòng Khám Lâm Sàng 02</option>
+              <option value="room-spa">Khu Spa Chăm Sóc VIP</option>
+            </select>
+          </div>
+
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="btn btn-outline" onclick="triggerSimulatedAppointment()">+ Mô phỏng khách mới đặt lịch</button>
+            <button class="btn btn-primary" onclick="renderKanbanBoard()">🔄 Tải lại hàng đợi</button>
+          </div>
+        </div>
+
+        <!-- Kanban 4 Columns -->
+        <div class="kanban-board">
+          <!-- Col 1: Scheduled -->
+          <div class="kanban-lane">
+            <div class="lane-header scheduled">
+              <span>📅 ĐÃ ĐẶT HẸN (CHƯA ĐẾN)</span>
+              <span class="badge badge-info" id="countSched">2</span>
+            </div>
+            <div class="lane-cards" id="laneScheduled"></div>
+          </div>
+
+          <!-- Col 2: Waiting -->
+          <div class="kanban-lane">
+            <div class="lane-header waiting">
+              <span>⏳ ĐÃ CHECK-IN / CHỜ KHÁM</span>
+              <span class="badge badge-warning" id="countWait">3</span>
+            </div>
+            <div class="lane-cards" id="laneWaiting"></div>
+          </div>
+
+          <!-- Col 3: In-Progress -->
+          <div class="kanban-lane">
+            <div class="lane-header in-progress">
+              <span>🩺 ĐANG KHÁM BỆNH / SPA</span>
+              <span class="badge badge-teal" id="countProg">2</span>
+            </div>
+            <div class="lane-cards" id="laneInProgress"></div>
+          </div>
+
+          <!-- Col 4: Completed -->
+          <div class="kanban-lane">
+            <div class="lane-header completed">
+              <span>✅ HOÀN THÀNH / CHỜ POS</span>
+              <span class="badge badge-success" id="countDone">5</span>
+            </div>
+            <div class="lane-cards" id="laneCompleted"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- TAB 2: BỆNH ÁN SOAP & KÊ ĐƠN THUỐC (TASK-31)              -->
+      <!-- ======================================================== -->
+      <section class="admin-section" id="sec-soap">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-weight: 700; font-size: 0.9rem;">Chọn ca khám đang xử lý:</span>
+            <select class="form-control" style="width: 380px;" id="soapPatientSelector" onchange="loadSoapPatient(this.value)">
+              <option value="appt-102" selected>Ca #102: Lulu (Mèo Anh, 4.2kg) - Sốt & Bỏ ăn</option>
+              <option value="appt-101">Ca #101: Mochi (Golden, 28.5kg) - Viêm tai ngoài</option>
+              <option value="appt-103">Ca #103: Rocky (Husky, 24kg) - Tiêm phòng dại</option>
+            </select>
+          </div>
+          <button class="btn btn-outline" onclick="printPrescription()">🖨️ In Đơn Thuốc Ra Giấy</button>
+        </div>
+
+        <div class="soap-layout">
+          <!-- Left: Patient Vitals -->
+          <div class="card patient-profile-card">
+            <div class="profile-avatar" id="soapAvatar">🐱</div>
+            <h3 style="font-family: var(--font-heading); font-size: 1.3rem;" id="soapName">Lulu</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted);" id="soapBreed">Mèo Anh Lông Ngắn (2 năm tuổi)</p>
+            <div style="font-size: 0.8rem; color: var(--teal-dark); font-weight: 600; margin-top: 0.35rem;">
+              Chủ: Đỗ Phú Khương (0918.xxx.789)
+            </div>
+
+            <!-- Vitals Grid -->
+            <div class="vitals-grid">
+              <div class="vital-box">
+                <span class="vital-lbl">Cân nặng (kg):</span>
+                <input type="number" step="0.1" class="vital-val" id="vitalW" value="4.2" onchange="autoCalculateDosage(this.value)">
+              </div>
+              <div class="vital-box">
+                <span class="vital-lbl">Thân nhiệt (°C):</span>
+                <input type="number" step="0.1" class="vital-val" id="vitalT" value="39.2">
+              </div>
+              <div class="vital-box">
+                <span class="vital-lbl">Nhịp tim (bpm):</span>
+                <input type="number" class="vital-val" id="vitalP" value="145">
+              </div>
+              <div class="vital-box">
+                <span class="vital-lbl">Niêm mạc:</span>
+                <input type="text" class="vital-val" id="vitalM" value="Hồng nhạt">
+              </div>
+            </div>
+
+            <div style="margin-top: 1rem; padding: 0.75rem; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: var(--radius-sm); text-align: left; font-size: 0.78rem; color: #92400E;">
+              <strong>⚠️ Tiền sử bệnh:</strong> Dị ứng nhẹ thức ăn protein gà. Đã tiêm ngừa 4 bệnh mèo.
+            </div>
+          </div>
+
+          <!-- Right: SOAP Form & Prescription -->
+          <div>
+            <!-- SOAP Quadrants -->
+            <div class="card">
+              <div class="card-header-row">
+                <h3 class="card-title">📝 Y Bạ Lâm Sàng Chuẩn SOAP (Subjective - Objective - Assessment - Plan)</h3>
+                <span class="badge badge-teal">Hồ sơ điện tử</span>
+              </div>
+
+              <div class="soap-boxes-grid">
+                <div class="soap-field">
+                  <label>S — Chủ Quan (Triệu chứng từ chủ nuôi)</label>
+                  <textarea class="soap-textarea" id="soapS">Chủ nuôi phát hiện bé ủ rũ 2 ngày nay, ăn ít, không sốt cao, có hắt hơi nhẹ về đêm.</textarea>
+                </div>
+                <div class="soap-field">
+                  <label>O — Khách Quan (Kết quả thăm khám)</label>
+                  <textarea class="soap-textarea" id="soapO">Mũi khô nhẹ, họng không viêm loét, phổi trong không ran ẩm. Thân nhiệt 39.2°C (sốt nhẹ).</textarea>
+                </div>
+                <div class="soap-field">
+                  <label>A — Đánh Giá (Chẩn đoán bệnh học)</label>
+                  <textarea class="soap-textarea" id="soapA">Viêm đường hô hấp trên thể nhẹ (Feline Upper Respiratory Infection) nghi do thay đổi thời tiết.</textarea>
+                </div>
+                <div class="soap-field">
+                  <label>P — Kế Hoạch (Phác đồ & Hướng dẫn)</label>
+                  <textarea class="soap-textarea" id="soapP">Kháng sinh Clavamox 62.5mg đường uống 2 lần/ngày x 7 ngày. Bổ sung Gel dinh dưỡng Nutri-plus. Tái khám sau 5 ngày.</textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Electronic Prescription Table -->
+            <div class="card">
+              <div class="card-header-row">
+                <div>
+                  <h3 class="card-title">💊 Đơn Thuốc Điện Tử (Tự Động Tính Liều An Toàn Theo Cân Nặng)</h3>
+                  <span style="font-size: 0.8rem; color: var(--text-muted);">Liều lượng tự động căn chỉnh khi cập nhật cân nặng của bé</span>
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="addSoapRxRow()">+ Thêm Thuốc</button>
+              </div>
+
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Tên Thuốc / Hoạt Chất</th>
+                    <th>Liều (mg/kg)</th>
+                    <th>Số Lượng</th>
+                    <th>Cách Dùng & Thời Điểm</th>
+                    <th>Đơn Giá</th>
+                    <th>Thành Tiền</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="soapRxBody">
+                  <!-- Rendered by admin.js -->
+                </tbody>
+              </table>
+
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <div>
+                  <span style="font-size: 0.9rem; color: var(--text-muted);">Tổng tiền thuốc đơn này:</span>
+                  <strong style="font-family: var(--font-heading); font-size: 1.3rem; color: var(--teal-dark); margin-left: 0.5rem;" id="soapRxTotal">185,000 đ</strong>
+                </div>
+
+                <div style="display: flex; gap: 0.75rem;">
+                  <button class="btn btn-success" onclick="saveSoapAndPushToPos()">
+                    💾 Lưu Y Bạ & Chuyển Quầy Thu Ngân POS
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- TAB 3: THU NGÂN POS & HÓA ĐƠN (TASK-32)                  -->
+      <!-- ======================================================== -->
+      <section class="admin-section" id="sec-pos">
+        <div class="pos-grid">
+          <!-- Left: Pending Orders & Quick Add Catalog -->
+          <div>
+            <div class="card">
+              <div class="card-header-row">
+                <h3 class="card-title">📋 Ca Khám Chờ Thanh Toán Từ Bác Sĩ</h3>
+                <span class="badge badge-warning">Đồng bộ tự động</span>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 0.65rem;" id="adminPendingOrders">
+                <!-- Rendered by admin.js -->
+              </div>
+            </div>
+
+            <!-- Quick Add Products -->
+            <div class="card">
+              <div class="card-header-row">
+                <h3 class="card-title">🛍️ Thêm Nhanh Dịch Vụ / Vật Tư Tại Quầy</h3>
+              </div>
+
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
+                <button class="btn btn-outline" style="flex-direction: column; padding: 0.85rem; text-align: left;" onclick="addPosItem('Cắt móng & Vệ sinh tai', 60000)">
+                  <span style="font-weight: 700; color: var(--text-main);">🐾 Vệ sinh tai</span>
+                  <span style="color: var(--teal-dark); font-size: 0.82rem;">60,000 đ</span>
+                </button>
+                <button class="btn btn-outline" style="flex-direction: column; padding: 0.85rem; text-align: left;" onclick="addPosItem('Sữa tắm trị ve nấm 250ml', 145000)">
+                  <span style="font-weight: 700; color: var(--text-main);">🧴 Sữa tắm ve nấm</span>
+                  <span style="color: var(--teal-dark); font-size: 0.82rem;">145,000 đ</span>
+                </button>
+                <button class="btn btn-outline" style="flex-direction: column; padding: 0.85rem; text-align: left;" onclick="addPosItem('Hạt Royal Canin Medium 1kg', 195000)">
+                  <span style="font-weight: 700; color: var(--text-main);">🍖 Hạt Royal Canin</span>
+                  <span style="color: var(--teal-dark); font-size: 0.82rem;">195,000 đ</span>
+                </button>
+                <button class="btn btn-outline" style="flex-direction: column; padding: 0.85rem; text-align: left;" onclick="addPosItem('Gel dinh dưỡng Nutri-plus', 160000)">
+                  <span style="font-weight: 700; color: var(--text-main);">🧪 Gel dinh dưỡng</span>
+                  <span style="color: var(--teal-dark); font-size: 0.82rem;">160,000 đ</span>
+                </button>
+                <button class="btn btn-outline" style="flex-direction: column; padding: 0.85rem; text-align: left;" onclick="addPosItem('Xịt khử mùi PetClean 300ml', 85000)">
+                  <span style="font-weight: 700; color: var(--text-main);">🌿 Xịt khử mùi</span>
+                  <span style="color: var(--teal-dark); font-size: 0.82rem;">85,000 đ</span>
+                </button>
+                <button class="btn btn-outline" style="flex-direction: column; padding: 0.85rem; text-align: left;" onclick="addPosItem('Vòng cổ chống ve Seresto', 320000)">
+                  <span style="font-weight: 700; color: var(--text-main);">⭕ Vòng Seresto</span>
+                  <span style="color: var(--teal-dark); font-size: 0.82rem;">320,000 đ</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Invoice & Payment Form -->
+          <div class="invoice-preview-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color);">
+              <div>
+                <h3 style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--text-main);">HÓA ĐƠN ĐIỆN TỬ</h3>
+                <span class="inv-code" id="posInvCode">HD-2026-09281</span>
+              </div>
+              <span class="badge badge-teal">VietQR Chuẩn NAPAS</span>
+            </div>
+
+            <div style="font-size: 0.85rem; margin-bottom: 1rem; color: var(--text-muted);">
+              Khách hàng: <strong id="posCustName" style="color: var(--text-main);">Đỗ Phú Khương</strong> · Thú cưng: <strong id="posPet" style="color: var(--text-main);">Lulu (Mèo Anh)</strong>
+            </div>
+
+            <!-- Invoice Item Table -->
+            <table class="admin-table" style="font-size: 0.85rem;">
+              <thead>
+                <tr>
+                  <th>Khoản mục</th>
+                  <th>SL</th>
+                  <th>Đơn giá</th>
+                  <th>Thành tiền</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="posItemsTbody">
+                <!-- Rendered by admin.js -->
+              </tbody>
+            </table>
+
+            <!-- Points & VIP Discount -->
+            <div style="margin-top: 1rem; padding: 0.85rem; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="font-size: 0.85rem; color: #92400E;">Điểm tích lũy: 1,450 Stars (VIP Kim Cương)</strong>
+                <div style="font-size: 0.75rem; color: #B45309;">Giảm thêm 50,000 đ khi dùng 500 Stars</div>
+              </div>
+              <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.82rem; font-weight: 700;">
+                <input type="checkbox" id="chkUseStars" onchange="toggleStars(this.checked)"> Dùng điểm
+              </label>
+            </div>
+
+            <!-- Calc Box -->
+            <div class="calc-box">
+              <div class="calc-line">
+                <span>Tạm tính dịch vụ & thuốc:</span>
+                <span id="posSub">435,000 đ</span>
+              </div>
+              <div class="calc-line" style="color: #059669;">
+                <span>Chiết khấu thẻ thành viên VIP (10%):</span>
+                <span id="posVipDisc">-43,500 đ</span>
+              </div>
+              <div class="calc-line" id="posStarsRow" style="color: #D97706; display: none;">
+                <span>Giảm trừ điểm Furina Stars:</span>
+                <span>-50,000 đ</span>
+              </div>
+              <div class="calc-line total">
+                <span>TỔNG CẦN THANH TOÁN:</span>
+                <span id="posTotal" style="font-size: 1.4rem;">341,500 đ</span>
+              </div>
+            </div>
+
+            <!-- Payment Methods -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1rem;">
+              <button class="btn btn-outline" style="border-color: var(--teal-primary); background: var(--teal-light); color: var(--teal-dark);" onclick="selectPay(this, 'qr')">📱 VietQR</button>
+              <button class="btn btn-outline" onclick="selectPay(this, 'cash')">💵 Tiền Mặt</button>
+              <button class="btn btn-outline" onclick="selectPay(this, 'card')">💳 Quẹt Thẻ</button>
+            </div>
+
+            <button class="btn btn-success" style="width: 100%; padding: 0.85rem; font-size: 1rem;" onclick="processAdminCheckout()">
+              ⚡ Xác Nhận Thanh Toán & Trừ Tồn Kho FEFO
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- TAB 4: KHO DƯỢC THEO LÔ FEFO (TASK-32)                   -->
+      <!-- ======================================================== -->
+      <section class="admin-section" id="sec-inventory">
+        <div class="card">
+          <div class="card-header-row">
+            <div>
+              <h3 class="card-title">📦 Quản Lý Kho Dược Theo Lô Hạn Dùng (FEFO - First-Expired, First-Out)</h3>
+              <span style="font-size: 0.8rem; color: var(--text-muted);">Ưu tiên xuất lô thuốc có hạn sử dụng gần nhất nhằm hạn chế thất thoát dược phẩm</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn btn-outline" onclick="filterInv('expiring')">⚠️ Lô Cận Hạn (3)</button>
+              <button class="btn btn-outline" onclick="filterInv('low')">📉 Tồn Kho Thấp (2)</button>
+              <button class="btn btn-outline" onclick="filterInv('all')">Tất Cả Lô Dược</button>
+            </div>
+          </div>
+
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Số Lô (Batch)</th>
+                <th>Tên Dược Phẩm / Vắc-xin</th>
+                <th>Quy Cách</th>
+                <th>Ngày SX</th>
+                <th>Hạn Sử Dụng (Expiry)</th>
+                <th>Ưu Tiên Xuất FEFO</th>
+                <th>Tồn Kho</th>
+                <th>Đơn Giá Bán</th>
+                <th>Trạng Thái</th>
+                <th>Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="inventoryAdminTable">
+              <!-- Rendered by admin.js -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- TAB 5: SUPER ADMIN TOÀN CHUỖI (TASK-34-36)               -->
+      <!-- ======================================================== -->
+      <section class="admin-section" id="sec-superadmin">
+        <!-- Multi-clinic Tenant Overview -->
+        <div class="card">
+          <div class="card-header-row">
+            <div>
+              <h3 class="card-title">🏥 Quản Lý Mạng Lưới Chi Nhánh (Multi-Tenant Architecture)</h3>
+              <span style="font-size: 0.8rem; color: var(--text-muted);">Dữ liệu được cách ly an toàn theo cơ chế PostgreSQL Row-Level Security (TASK-11)</span>
+            </div>
+            <button class="btn btn-primary" onclick="exportAuditReport()">📥 Xuất Báo Cáo Tài Chính CSV</button>
+          </div>
+
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Mã Cơ Sở</th>
+                <th>Tên Chi Nhánh</th>
+                <th>Địa Chỉ</th>
+                <th>Quy Mô Nhân Sự</th>
+                <th>Doanh Thu Tháng</th>
+                <th>Trạng Thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>CLI-001</strong></td>
+                <td>Furina Hai Bà Trưng</td>
+                <td>120 Hai Bà Trưng, Quận 1, TP.HCM</td>
+                <td>6 Bác Sĩ · 8 Kỹ Thuật Viên</td>
+                <td><strong>580,000,000 đ</strong></td>
+                <td><span class="badge badge-success">Đang Hoạt Động</span></td>
+              </tr>
+              <tr>
+                <td><strong>CLI-002</strong></td>
+                <td>Furina Thảo Điền (Trụ Sở)</td>
+                <td>45 Thảo Điền, TP. Thủ Đức</td>
+                <td>8 Bác Sĩ · 10 Kỹ Thuật Viên</td>
+                <td><strong>720,000,000 đ</strong></td>
+                <td><span class="badge badge-success">Đang Hoạt Động</span></td>
+              </tr>
+              <tr>
+                <td><strong>CLI-003</strong></td>
+                <td>Furina Phú Mỹ Hưng</td>
+                <td>88 Nguyễn Đức Cảnh, Quận 7, TP.HCM</td>
+                <td>5 Bác Sĩ · 6 Kỹ Thuật Viên</td>
+                <td><strong>410,000,000 đ</strong></td>
+                <td><span class="badge badge-success">Đang Hoạt Động</span></td>
+              </tr>
+              <tr>
+                <td><strong>CLI-004</strong></td>
+                <td>Furina Cần Thơ</td>
+                <td>Phường Ninh Kiều, Cần Thơ</td>
+                <td>4 Bác Sĩ · 4 Kỹ Thuật Viên</td>
+                <td><strong>132,500,000 đ</strong></td>
+                <td><span class="badge badge-success">Đang Hoạt Động</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Master Vaccine Catalog (WSAVA) -->
+        <div class="card">
+          <div class="card-header-row">
+            <div>
+              <h3 class="card-title">🔬 Danh Mục Vắc-xin & Bệnh Chuẩn Hóa Toàn Hệ Thống (Master Catalog)</h3>
+              <span style="font-size: 0.8rem; color: var(--text-muted);">Đồng bộ phác đồ tiêm chủng quốc tế WSAVA cho toàn bộ chi nhánh</span>
+            </div>
+            <span class="badge badge-teal">Chuẩn WSAVA</span>
+          </div>
+
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Loài</th>
+                <th>Tên Vắc-xin</th>
+                <th>Nhà Sản Xuất</th>
+                <th>Phác Đồ Mũi Cơ Bản</th>
+                <th>Tần Suất Tiêm Nhắc Lại</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>🐶 Chó</td>
+                <td><strong>Vanguard Plus 5/L</strong></td>
+                <td>Zoetis (Hoa Kỳ)</td>
+                <td>Mũi 1 (6-8 tuần), Mũi 2 (+3 tuần), Mũi 3 (+3 tuần)</td>
+                <td>Tiêm nhắc mỗi 12 tháng</td>
+              </tr>
+              <tr>
+                <td>🐶 Chó</td>
+                <td><strong>Rabisin (Phòng Bệnh Dại)</strong></td>
+                <td>Boehringer Ingelheim</td>
+                <td>Mũi 1 (từ 12 tuần tuổi trở lên)</td>
+                <td>Tiêm nhắc mỗi 12 tháng</td>
+              </tr>
+              <tr>
+                <td>🐱 Mèo</td>
+                <td><strong>Nobivac Tricat Trio (4 Bệnh Mèo)</strong></td>
+                <td>MSD Animal Health</td>
+                <td>Mũi 1 (8 tuần tuổi), Mũi 2 (+4 tuần)</td>
+                <td>Tiêm nhắc mỗi 12 tháng</td>
+              </tr>
+              <tr>
+                <td>🐶 Chó</td>
+                <td><strong>Bordetella (Ho Cũi Chó)</strong></td>
+                <td>Zoetis (Hoa Kỳ)</td>
+                <td>Xịt mũi 1 liều duy nhất</td>
+                <td>Tiêm nhắc mỗi 6 tháng</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>
