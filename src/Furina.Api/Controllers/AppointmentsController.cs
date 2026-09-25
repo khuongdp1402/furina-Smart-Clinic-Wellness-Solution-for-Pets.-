@@ -1,12 +1,14 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Furina.Api.Auth;
+using Furina.Api.Hubs;
 using Furina.Domain.Entities;
 using Furina.Infrastructure.MultiTenancy;
 using Furina.Infrastructure.Notifications;
 using Furina.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Furina.Api.Controllers;
@@ -46,7 +48,8 @@ public record AppointmentResponse(
 [ApiController]
 [Route("api/appointments")]
 [Authorize]
-public class AppointmentsController(FurinaDbContext db, ITenantContext tenantContext, AppointmentReminderJob reminderJob) : ControllerBase
+public class AppointmentsController(
+    FurinaDbContext db, ITenantContext tenantContext, AppointmentReminderJob reminderJob, IHubContext<DispatchBoardHub> dispatchHub) : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult<AppointmentResponse>> Create(CreateAppointmentRequest request, CancellationToken ct)
@@ -169,6 +172,18 @@ public class AppointmentsController(FurinaDbContext db, ITenantContext tenantCon
             Reason = request.Reason,
         });
         await db.SaveChangesAsync(ct);
+
+        // TASK-25: broadcast strictly AFTER SaveChangesAsync returns
+        // successfully — if it had thrown (e.g. a concurrency conflict),
+        // this line is never reached, so viewers are never told about a
+        // status change that didn't actually commit.
+        await dispatchHub.Clients.Group(DispatchBoardHub.GroupName(appointment.ClinicId))
+            .SendAsync("AppointmentStatusChanged", new
+            {
+                appointmentId = appointment.Id,
+                fromStatus = from,
+                toStatus = appointment.Status,
+            }, ct);
 
         return AppointmentResponse.From(appointment);
     }

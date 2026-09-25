@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Furina.Api.Auth;
 using Furina.Api.Config;
+using Furina.Api.Hubs;
 using Furina.Api.Jobs;
 using Furina.Infrastructure.Auth;
 using Furina.Infrastructure.MultiTenancy;
@@ -22,6 +23,9 @@ builder.Services.AddControllers()
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+// --- Real-time dispatch board (TASK-25) ---
+builder.Services.AddSignalR();
 
 // --- Multi-tenant database wiring (TASK-11) ---
 // Scoped so each HTTP request gets its own tenant value and its own
@@ -79,6 +83,24 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret)),
             ClockSkew = TimeSpan.FromSeconds(30),
         };
+
+        // Browser WebSocket connections can't set an Authorization
+        // header on the upgrade handshake — SignalR's own client convention
+        // is to send the token as an `access_token` query parameter
+        // instead, which this reads for any request under the hub's path.
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            },
+        };
     });
 
 builder.Services.AddAuthorization(options => options.AddFurinaPolicies());
@@ -106,6 +128,7 @@ app.UseMiddleware<TenantClaimGuardMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<DispatchBoardHub>("/hubs/dispatch-board");
 
 if (app.Configuration.GetValue<bool>("Seed:RunOnStartup"))
 {
