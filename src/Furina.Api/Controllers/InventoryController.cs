@@ -1,5 +1,6 @@
 using Furina.Api.Auth;
 using Furina.Domain.Entities;
+using Furina.Infrastructure.Inventory;
 using Furina.Infrastructure.MultiTenancy;
 using Furina.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
@@ -8,11 +9,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Furina.Api.Controllers;
 
-public record InventoryItemRequest(string Name, string Unit);
+public record InventoryItemRequest(string Name, string Unit, decimal Price);
 
-public record InventoryItemResponse(Guid Id, Guid ClinicId, string Name, string Unit)
+public record InventoryItemResponse(Guid Id, Guid ClinicId, string Name, string Unit, decimal Price)
 {
-    public static InventoryItemResponse From(InventoryItem i) => new(i.Id, i.ClinicId, i.Name, i.Unit);
+    public static InventoryItemResponse From(InventoryItem i) => new(i.Id, i.ClinicId, i.Name, i.Unit, i.Price);
 }
 
 public record ReceiveBatchRequest(string BatchNo, DateOnly ExpiryDate, DateOnly ReceivedDate, int Quantity);
@@ -56,6 +57,7 @@ public class InventoryController(FurinaDbContext db, ITenantContext tenantContex
             ClinicId = clinicId,
             Name = request.Name,
             Unit = request.Unit,
+            Price = request.Price,
         };
         db.InventoryItems.Add(item);
         await db.SaveChangesAsync(ct);
@@ -114,41 +116,29 @@ public class InventoryController(FurinaDbContext db, ITenantContext tenantContex
         await db.Database.ExecuteSqlInterpolatedAsync(
             $"SELECT pg_advisory_xact_lock(hashtext({itemId.ToString()})::bigint)", ct);
 
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
-
-        // AC-1 (FEFO, not FIFO) + test case 3 (never an expired batch):
-        // ordered soonest-expiry-first, expired batches excluded entirely.
-        var batches = await db.InventoryBatches
-            .Where(b => b.InventoryItemId == itemId && b.QuantityRemaining > 0 && b.ExpiryDate >= today)
-            .OrderBy(b => b.ExpiryDate)
-            .ToListAsync(ct);
-
-        var totalAvailable = batches.Sum(b => b.QuantityRemaining);
-        if (totalAvailable < request.Quantity)
+        List<FefoIssueLine> issued;
+        try
+        {
+            // AC-1 (FEFO, not FIFO) + test case 3 (never an expired
+            // batch): shared with TASK-27's invoice/POS flow so both
+            // deduct stock the exact same way.
+            issued = await InventoryFefoService.IssueAsync(db, itemId, request.Quantity, ct);
+        }
+        catch (InsufficientStockException ex)
         {
             await transaction.RollbackAsync(ct);
             return BadRequest(new
             {
                 error = "insufficient_stock",
-                detail = $"Yêu cầu xuất {request.Quantity} nhưng chỉ còn {totalAvailable} (không tính lô đã hết hạn).",
-                availableQuantity = totalAvailable,
+                detail = $"Yêu cầu xuất {ex.Requested} nhưng chỉ còn {ex.Available} (không tính lô đã hết hạn).",
+                availableQuantity = ex.Available,
             });
-        }
-
-        var remaining = request.Quantity;
-        var issuedFrom = new List<IssuedFromBatch>();
-        foreach (var batch in batches)
-        {
-            if (remaining <= 0) break;
-            var take = Math.Min(remaining, batch.QuantityRemaining);
-            batch.QuantityRemaining -= take;
-            remaining -= take;
-            issuedFrom.Add(new IssuedFromBatch(batch.Id, batch.BatchNo, batch.ExpiryDate, take));
         }
 
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
 
+        var issuedFrom = issued.Select(l => new IssuedFromBatch(l.BatchId, l.BatchNo, l.ExpiryDate, l.QuantityTaken)).ToList();
         return new IssueStockResponse(request.Quantity, issuedFrom);
     }
 }

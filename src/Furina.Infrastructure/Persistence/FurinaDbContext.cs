@@ -30,6 +30,8 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
     public DbSet<AppointmentReminderLog> AppointmentReminderLogs => Set<AppointmentReminderLog>();
     public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
     public DbSet<InventoryBatch> InventoryBatches => Set<InventoryBatch>();
+    public DbSet<Invoice> Invoices => Set<Invoice>();
+    public DbSet<InvoiceLineItem> InvoiceLineItems => Set<InvoiceLineItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -416,9 +418,54 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
             e.Property(x => x.ClinicId).HasColumnName("clinic_id").IsRequired();
             e.Property(x => x.Name).HasColumnName("name").IsRequired();
             e.Property(x => x.Unit).HasColumnName("unit");
+            e.Property(x => x.Price).HasColumnName("price").HasColumnType("numeric(12,2)");
             e.HasIndex(x => x.ClinicId);
             e.HasOne(x => x.Clinic).WithMany()
                 .HasForeignKey(x => x.ClinicId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Tenant).WithMany()
+                .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Invoice>(e =>
+        {
+            e.ToTable("invoices");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id").IsRequired();
+            e.Property(x => x.ClinicId).HasColumnName("clinic_id").IsRequired();
+            e.Property(x => x.VisitId).HasColumnName("visit_id");
+            e.Property(x => x.TotalAmount).HasColumnName("total_amount").HasColumnType("numeric(12,2)");
+            e.Property(x => x.CreatedByUserId).HasColumnName("created_by_user_id").IsRequired();
+            e.Property(x => x.CreatedAt).HasColumnName("created_at");
+            e.HasIndex(x => x.ClinicId);
+            e.HasOne(x => x.Clinic).WithMany()
+                .HasForeignKey(x => x.ClinicId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Visit).WithMany()
+                .HasForeignKey(x => x.VisitId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Tenant).WithMany()
+                .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<InvoiceLineItem>(e =>
+        {
+            e.ToTable("invoice_line_items");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id").IsRequired();
+            e.Property(x => x.InvoiceId).HasColumnName("invoice_id").IsRequired();
+            e.Property(x => x.Type).HasColumnName("type").IsRequired();
+            e.Property(x => x.ServiceCatalogId).HasColumnName("service_catalog_id");
+            e.Property(x => x.InventoryItemId).HasColumnName("inventory_item_id");
+            e.Property(x => x.Quantity).HasColumnName("quantity");
+            e.Property(x => x.UnitPrice).HasColumnName("unit_price").HasColumnType("numeric(12,2)");
+            e.Property(x => x.LineTotal).HasColumnName("line_total").HasColumnType("numeric(12,2)");
+            e.HasIndex(x => x.InvoiceId);
+            e.HasOne(x => x.Invoice).WithMany(i => i.Lines)
+                .HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.ServiceCatalog).WithMany()
+                .HasForeignKey(x => x.ServiceCatalogId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.InventoryItem).WithMany()
+                .HasForeignKey(x => x.InventoryItemId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.Tenant).WithMany()
                 .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
         });

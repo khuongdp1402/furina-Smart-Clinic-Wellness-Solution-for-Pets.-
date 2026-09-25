@@ -9,6 +9,9 @@ public class InventoryItem : ITenantScoped
     public string Name { get; set; } = string.Empty;
     public string Unit { get; set; } = string.Empty;
 
+    /// <summary>TASK-27: unit sell price — POS needs this to bill for physical items, not just services.</summary>
+    public decimal Price { get; set; }
+
     public Clinic Clinic { get; set; } = null!;
     public Tenant Tenant { get; set; } = null!;
     public ICollection<InventoryBatch> Batches { get; set; } = [];
