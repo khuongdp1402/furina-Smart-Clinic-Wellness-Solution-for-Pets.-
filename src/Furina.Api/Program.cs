@@ -2,8 +2,10 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Furina.Api.Auth;
 using Furina.Api.Config;
+using Furina.Api.Jobs;
 using Furina.Infrastructure.Auth;
 using Furina.Infrastructure.MultiTenancy;
+using Furina.Infrastructure.Notifications;
 using Furina.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -39,6 +41,10 @@ builder.Services.AddDbContext<FurinaDbContext>((sp, options) =>
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
 builder.Services.Configure<MedicalRecordOptions>(builder.Configuration.GetSection(MedicalRecordOptions.SectionName));
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
+
+// --- Vaccination reminders (TASK-20) ---
+builder.Services.AddSingleton<VaccinationReminderJob>();
+builder.Services.AddHostedService<VaccinationReminderBackgroundService>();
 
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
     ?? throw new InvalidOperationException("Missing Jwt configuration section.");

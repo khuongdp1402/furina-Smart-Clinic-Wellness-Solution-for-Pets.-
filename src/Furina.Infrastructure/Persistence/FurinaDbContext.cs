@@ -23,6 +23,8 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
     public DbSet<Visit> Visits => Set<Visit>();
     public DbSet<MedicalRecord> MedicalRecords => Set<MedicalRecord>();
     public DbSet<MedicalRecordAuditLog> MedicalRecordAuditLogs => Set<MedicalRecordAuditLog>();
+    public DbSet<VaccinationRecord> VaccinationRecords => Set<VaccinationRecord>();
+    public DbSet<NotificationLog> NotificationLogs => Set<NotificationLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -283,6 +285,40 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
             e.HasIndex(x => x.MedicalRecordId);
             e.HasOne(x => x.MedicalRecord).WithMany()
                 .HasForeignKey(x => x.MedicalRecordId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Tenant).WithMany()
+                .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<VaccinationRecord>(e =>
+        {
+            e.ToTable("vaccination_records");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id").IsRequired();
+            e.Property(x => x.PetId).HasColumnName("pet_id").IsRequired();
+            e.Property(x => x.VaccineName).HasColumnName("vaccine_name").IsRequired();
+            e.Property(x => x.DateGiven).HasColumnName("date_given");
+            e.Property(x => x.NextDueDate).HasColumnName("next_due_date");
+            e.Property(x => x.CreatedByUserId).HasColumnName("created_by_user_id").IsRequired();
+            e.HasIndex(x => new { x.PetId, x.NextDueDate });
+            e.HasOne(x => x.Pet).WithMany()
+                .HasForeignKey(x => x.PetId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Tenant).WithMany()
+                .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<NotificationLog>(e =>
+        {
+            e.ToTable("notification_logs");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id").IsRequired();
+            e.Property(x => x.VaccinationRecordId).HasColumnName("vaccination_record_id").IsRequired();
+            e.Property(x => x.MilestoneDay).HasColumnName("milestone_day");
+            e.Property(x => x.SentAt).HasColumnName("sent_at");
+            e.HasIndex(x => new { x.VaccinationRecordId, x.MilestoneDay }).IsUnique();
+            e.HasOne(x => x.VaccinationRecord).WithMany()
+                .HasForeignKey(x => x.VaccinationRecordId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(x => x.Tenant).WithMany()
                 .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
         });
