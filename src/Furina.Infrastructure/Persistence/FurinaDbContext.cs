@@ -25,6 +25,7 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
     public DbSet<MedicalRecordAuditLog> MedicalRecordAuditLogs => Set<MedicalRecordAuditLog>();
     public DbSet<VaccinationRecord> VaccinationRecords => Set<VaccinationRecord>();
     public DbSet<NotificationLog> NotificationLogs => Set<NotificationLog>();
+    public DbSet<Prescription> Prescriptions => Set<Prescription>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -319,6 +320,43 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
             e.HasIndex(x => new { x.VaccinationRecordId, x.MilestoneDay }).IsUnique();
             e.HasOne(x => x.VaccinationRecord).WithMany()
                 .HasForeignKey(x => x.VaccinationRecordId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Tenant).WithMany()
+                .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Prescription>(e =>
+        {
+            e.ToTable("prescriptions");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id").IsRequired();
+            e.Property(x => x.VisitId).HasColumnName("visit_id").IsRequired();
+            e.Property(x => x.PetId).HasColumnName("pet_id").IsRequired();
+            e.Property(x => x.VetUserId).HasColumnName("vet_user_id").IsRequired();
+            e.Property(x => x.CreatedAt).HasColumnName("created_at");
+
+            // Same pattern as Clinic.OpeningHours (TASK-15): a plain jsonb
+            // column via a value converter, not EF's OwnsMany().ToJson() —
+            // JSON array order is preserved by System.Text.Json, which is
+            // exactly what AC-1's "đọc lại đúng thứ tự đã nhập" needs.
+            var itemsComparer = new ValueComparer<List<PrescriptionItem>>(
+                (a, b) => (a ?? new()).SequenceEqual(b ?? new()),
+                v => v.Aggregate(0, (hash, i) => HashCode.Combine(hash, i.DrugName, i.Dosage, i.Frequency, i.DurationDays)),
+                v => v.ToList());
+            e.Property(x => x.Items)
+                .HasColumnName("items")
+                .HasColumnType("jsonb")
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<List<PrescriptionItem>>(v, (JsonSerializerOptions?)null) ?? new())
+                .Metadata.SetValueComparer(itemsComparer);
+
+            e.HasIndex(x => x.VisitId).IsUnique();
+            e.HasIndex(x => new { x.PetId, x.CreatedAt });
+            e.HasOne(x => x.Visit).WithMany()
+                .HasForeignKey(x => x.VisitId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Pet).WithMany()
+                .HasForeignKey(x => x.PetId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.Tenant).WithMany()
                 .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
         });
