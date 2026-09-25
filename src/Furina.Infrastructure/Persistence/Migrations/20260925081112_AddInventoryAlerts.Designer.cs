@@ -3,6 +3,7 @@ using System;
 using Furina.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Furina.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(FurinaDbContext))]
-    partial class FurinaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260925081112_AddInventoryAlerts")]
+    partial class AddInventoryAlerts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -386,15 +389,6 @@ namespace Furina.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("created_by_user_id");
 
-                    b.Property<Guid?>("OwnerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("owner_id");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("status");
-
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid")
                         .HasColumnName("tenant_id");
@@ -469,78 +463,6 @@ namespace Furina.Infrastructure.Persistence.Migrations
                     b.HasIndex("TenantId");
 
                     b.ToTable("invoice_line_items", (string)null);
-                });
-
-            modelBuilder.Entity("Furina.Domain.Entities.LoyaltyAccount", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid>("OwnerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("owner_id");
-
-                    b.Property<int>("PointsBalance")
-                        .HasColumnType("integer")
-                        .HasColumnName("points_balance");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OwnerId")
-                        .IsUnique();
-
-                    b.HasIndex("TenantId");
-
-                    b.ToTable("loyalty_accounts", (string)null);
-                });
-
-            modelBuilder.Entity("Furina.Domain.Entities.LoyaltyTransaction", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<Guid?>("InvoiceId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("invoice_id");
-
-                    b.Property<Guid>("LoyaltyAccountId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("loyalty_account_id");
-
-                    b.Property<int>("Points")
-                        .HasColumnType("integer")
-                        .HasColumnName("points");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("type");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("InvoiceId");
-
-                    b.HasIndex("LoyaltyAccountId");
-
-                    b.HasIndex("TenantId");
-
-                    b.ToTable("loyalty_transactions", (string)null);
                 });
 
             modelBuilder.Entity("Furina.Domain.Entities.MedicalRecord", b =>
@@ -1015,14 +937,6 @@ namespace Furina.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("low_stock_alert_lead_days");
 
-                    b.Property<decimal>("LoyaltyPointsAmountUnit")
-                        .HasColumnType("numeric(12,2)")
-                        .HasColumnName("loyalty_points_amount_unit");
-
-                    b.Property<int>("LoyaltyPointsPerUnit")
-                        .HasColumnType("integer")
-                        .HasColumnName("loyalty_points_per_unit");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text")
@@ -1426,43 +1340,6 @@ namespace Furina.Infrastructure.Persistence.Migrations
                     b.Navigation("Tenant");
                 });
 
-            modelBuilder.Entity("Furina.Domain.Entities.LoyaltyAccount", b =>
-                {
-                    b.HasOne("Furina.Domain.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Tenant");
-                });
-
-            modelBuilder.Entity("Furina.Domain.Entities.LoyaltyTransaction", b =>
-                {
-                    b.HasOne("Furina.Domain.Entities.Invoice", "Invoice")
-                        .WithMany()
-                        .HasForeignKey("InvoiceId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Furina.Domain.Entities.LoyaltyAccount", "LoyaltyAccount")
-                        .WithMany("Transactions")
-                        .HasForeignKey("LoyaltyAccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Furina.Domain.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Invoice");
-
-                    b.Navigation("LoyaltyAccount");
-
-                    b.Navigation("Tenant");
-                });
-
             modelBuilder.Entity("Furina.Domain.Entities.MedicalRecord", b =>
                 {
                     b.HasOne("Furina.Domain.Entities.Pet", "Pet")
@@ -1788,11 +1665,6 @@ namespace Furina.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Furina.Domain.Entities.Invoice", b =>
                 {
                     b.Navigation("Lines");
-                });
-
-            modelBuilder.Entity("Furina.Domain.Entities.LoyaltyAccount", b =>
-                {
-                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("Furina.Domain.Entities.Pet", b =>
