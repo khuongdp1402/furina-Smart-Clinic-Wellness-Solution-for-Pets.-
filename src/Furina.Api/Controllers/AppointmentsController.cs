@@ -1,7 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Furina.Api.Auth;
 using Furina.Domain.Entities;
 using Furina.Infrastructure.MultiTenancy;
+using Furina.Infrastructure.Notifications;
 using Furina.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -44,7 +46,7 @@ public record AppointmentResponse(
 [ApiController]
 [Route("api/appointments")]
 [Authorize]
-public class AppointmentsController(FurinaDbContext db, ITenantContext tenantContext) : ControllerBase
+public class AppointmentsController(FurinaDbContext db, ITenantContext tenantContext, AppointmentReminderJob reminderJob) : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult<AppointmentResponse>> Create(CreateAppointmentRequest request, CancellationToken ct)
@@ -179,6 +181,15 @@ public class AppointmentsController(FurinaDbContext db, ITenantContext tenantCon
             .OrderBy(l => l.ChangedAt)
             .ToListAsync(ct);
         return logs.Select(StatusAuditLogResponse.From).ToList();
+    }
+
+    /// <summary>Manual trigger for TASK-24's reminder job — ops use, and lets tests prove idempotency without waiting for 18:00.</summary>
+    [HttpPost("~/api/admin/appointment-reminders/run")]
+    [Authorize(Policy = Policies.OwnerOnly)]
+    public async Task<ActionResult> RunReminderJob(CancellationToken ct)
+    {
+        var created = await reminderJob.RunAsync(ct);
+        return Ok(new { remindersCreated = created });
     }
 
     private Guid CurrentUserId() =>

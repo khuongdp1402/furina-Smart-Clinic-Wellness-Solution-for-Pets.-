@@ -46,6 +46,10 @@ builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 builder.Services.AddSingleton<VaccinationReminderJob>();
 builder.Services.AddHostedService<VaccinationReminderBackgroundService>();
 
+// --- Appointment reminders (TASK-24) ---
+builder.Services.AddSingleton<AppointmentReminderJob>();
+builder.Services.AddHostedService<AppointmentReminderBackgroundService>();
+
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
     ?? throw new InvalidOperationException("Missing Jwt configuration section.");
 if (string.IsNullOrWhiteSpace(jwtOptions.Secret))

@@ -27,6 +27,7 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
     public DbSet<NotificationLog> NotificationLogs => Set<NotificationLog>();
     public DbSet<Prescription> Prescriptions => Set<Prescription>();
     public DbSet<AppointmentStatusAuditLog> AppointmentStatusAuditLogs => Set<AppointmentStatusAuditLog>();
+    public DbSet<AppointmentReminderLog> AppointmentReminderLogs => Set<AppointmentReminderLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -383,6 +384,21 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
             e.Property(x => x.ChangedAt).HasColumnName("changed_at");
             e.Property(x => x.Reason).HasColumnName("reason");
             e.HasIndex(x => x.AppointmentId);
+            e.HasOne(x => x.Appointment).WithMany()
+                .HasForeignKey(x => x.AppointmentId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Tenant).WithMany()
+                .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<AppointmentReminderLog>(e =>
+        {
+            e.ToTable("appointment_reminder_logs");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id").IsRequired();
+            e.Property(x => x.AppointmentId).HasColumnName("appointment_id").IsRequired();
+            e.Property(x => x.SentAt).HasColumnName("sent_at");
+            e.HasIndex(x => x.AppointmentId).IsUnique();
             e.HasOne(x => x.Appointment).WithMany()
                 .HasForeignKey(x => x.AppointmentId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(x => x.Tenant).WithMany()
