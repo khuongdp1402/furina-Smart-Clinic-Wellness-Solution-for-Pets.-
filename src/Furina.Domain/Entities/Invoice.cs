@@ -11,14 +11,24 @@ public static class InvoiceLineType
 /// from each line's real unit price at billing time — never trusted from
 /// the client (AC-3).
 /// </summary>
+public static class InvoiceStatuses
+{
+    public const string Active = "Active";
+    public const string Cancelled = "Cancelled";
+}
+
 public class Invoice : ITenantScoped
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid TenantId { get; set; }
     public Guid ClinicId { get; set; }
     public Guid? VisitId { get; set; }
+
+    /// <summary>TASK-29: the paying customer (a Customer-role User), if any — loyalty points are only earned when this is set.</summary>
+    public Guid? OwnerId { get; set; }
     public decimal TotalAmount { get; set; }
     public Guid CreatedByUserId { get; set; }
+    public string Status { get; set; } = InvoiceStatuses.Active;
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
     public Clinic Clinic { get; set; } = null!;

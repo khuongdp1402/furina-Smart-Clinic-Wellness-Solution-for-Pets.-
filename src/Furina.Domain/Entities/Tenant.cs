@@ -16,5 +16,9 @@ public class Tenant
     /// <summary>TASK-28: how many days ahead of a batch's expiry the daily scan job raises a NearExpiry alert.</summary>
     public int LowStockAlertLeadDays { get; set; } = 7;
 
+    /// <summary>TASK-29: loyalty points earned per LoyaltyPointsAmountUnit of invoice total (e.g. 1 point per 10,000₫).</summary>
+    public int LoyaltyPointsPerUnit { get; set; } = 1;
+    public decimal LoyaltyPointsAmountUnit { get; set; } = 10000m;
+
     public ICollection<User> Users { get; set; } = new List<User>();
 }

@@ -31,6 +31,8 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
     public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
     public DbSet<InventoryBatch> InventoryBatches => Set<InventoryBatch>();
     public DbSet<InventoryAlert> InventoryAlerts => Set<InventoryAlert>();
+    public DbSet<LoyaltyAccount> LoyaltyAccounts => Set<LoyaltyAccount>();
+    public DbSet<LoyaltyTransaction> LoyaltyTransactions => Set<LoyaltyTransaction>();
     public DbSet<Invoice> Invoices => Set<Invoice>();
     public DbSet<InvoiceLineItem> InvoiceLineItems => Set<InvoiceLineItem>();
 
@@ -47,6 +49,8 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
             e.Property(x => x.IsActive).HasColumnName("is_active");
             e.Property(x => x.CreatedAt).HasColumnName("created_at");
             e.Property(x => x.LowStockAlertLeadDays).HasColumnName("low_stock_alert_lead_days");
+            e.Property(x => x.LoyaltyPointsPerUnit).HasColumnName("loyalty_points_per_unit");
+            e.Property(x => x.LoyaltyPointsAmountUnit).HasColumnName("loyalty_points_amount_unit").HasColumnType("numeric(12,2)");
         });
 
         modelBuilder.Entity<User>(e =>
@@ -460,14 +464,51 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
             e.Property(x => x.TenantId).HasColumnName("tenant_id").IsRequired();
             e.Property(x => x.ClinicId).HasColumnName("clinic_id").IsRequired();
             e.Property(x => x.VisitId).HasColumnName("visit_id");
+            e.Property(x => x.OwnerId).HasColumnName("owner_id");
             e.Property(x => x.TotalAmount).HasColumnName("total_amount").HasColumnType("numeric(12,2)");
             e.Property(x => x.CreatedByUserId).HasColumnName("created_by_user_id").IsRequired();
+            e.Property(x => x.Status).HasColumnName("status").IsRequired();
             e.Property(x => x.CreatedAt).HasColumnName("created_at");
             e.HasIndex(x => x.ClinicId);
             e.HasOne(x => x.Clinic).WithMany()
                 .HasForeignKey(x => x.ClinicId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.Visit).WithMany()
                 .HasForeignKey(x => x.VisitId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Tenant).WithMany()
+                .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<LoyaltyAccount>(e =>
+        {
+            e.ToTable("loyalty_accounts");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id").IsRequired();
+            e.Property(x => x.OwnerId).HasColumnName("owner_id").IsRequired();
+            e.Property(x => x.PointsBalance).HasColumnName("points_balance");
+            // One running balance per customer per tenant.
+            e.HasIndex(x => x.OwnerId).IsUnique();
+            e.HasOne(x => x.Tenant).WithMany()
+                .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<LoyaltyTransaction>(e =>
+        {
+            e.ToTable("loyalty_transactions");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id").IsRequired();
+            e.Property(x => x.LoyaltyAccountId).HasColumnName("loyalty_account_id").IsRequired();
+            e.Property(x => x.Type).HasColumnName("type").IsRequired();
+            e.Property(x => x.Points).HasColumnName("points");
+            e.Property(x => x.InvoiceId).HasColumnName("invoice_id");
+            e.Property(x => x.CreatedAt).HasColumnName("created_at");
+            e.HasIndex(x => x.LoyaltyAccountId);
+            e.HasIndex(x => x.InvoiceId);
+            e.HasOne(x => x.LoyaltyAccount).WithMany(a => a.Transactions)
+                .HasForeignKey(x => x.LoyaltyAccountId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Invoice).WithMany()
+                .HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.Tenant).WithMany()
                 .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
         });
