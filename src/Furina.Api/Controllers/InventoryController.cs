@@ -2,6 +2,7 @@ using Furina.Api.Auth;
 using Furina.Domain.Entities;
 using Furina.Infrastructure.Inventory;
 using Furina.Infrastructure.MultiTenancy;
+using Furina.Infrastructure.Notifications;
 using Furina.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,11 +10,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Furina.Api.Controllers;
 
-public record InventoryItemRequest(string Name, string Unit, decimal Price);
+public record InventoryItemRequest(string Name, string Unit, decimal Price, int MinStockThreshold = 0);
 
-public record InventoryItemResponse(Guid Id, Guid ClinicId, string Name, string Unit, decimal Price)
+public record InventoryItemResponse(Guid Id, Guid ClinicId, string Name, string Unit, decimal Price, int MinStockThreshold)
 {
-    public static InventoryItemResponse From(InventoryItem i) => new(i.Id, i.ClinicId, i.Name, i.Unit, i.Price);
+    public static InventoryItemResponse From(InventoryItem i) => new(i.Id, i.ClinicId, i.Name, i.Unit, i.Price, i.MinStockThreshold);
+}
+
+public record InventoryAlertResponse(Guid Id, string Type, Guid? InventoryBatchId, Guid? InventoryItemId, DateTimeOffset CreatedAt, DateTimeOffset? ResolvedAt)
+{
+    public static InventoryAlertResponse From(InventoryAlert a) => new(a.Id, a.Type, a.InventoryBatchId, a.InventoryItemId, a.CreatedAt, a.ResolvedAt);
 }
 
 public record ReceiveBatchRequest(string BatchNo, DateOnly ExpiryDate, DateOnly ReceivedDate, int Quantity);
@@ -35,7 +41,7 @@ public record IssueStockResponse(int QuantityIssued, List<IssuedFromBatch> FromB
 /// </summary>
 [ApiController]
 [Authorize]
-public class InventoryController(FurinaDbContext db, ITenantContext tenantContext) : ControllerBase
+public class InventoryController(FurinaDbContext db, ITenantContext tenantContext, InventoryAlertJob alertJob) : ControllerBase
 {
     [HttpGet("api/clinics/{clinicId:guid}/inventory-items")]
     public async Task<ActionResult<List<InventoryItemResponse>>> ListForClinic(Guid clinicId, CancellationToken ct)
@@ -58,11 +64,35 @@ public class InventoryController(FurinaDbContext db, ITenantContext tenantContex
             Name = request.Name,
             Unit = request.Unit,
             Price = request.Price,
+            MinStockThreshold = request.MinStockThreshold,
         };
         db.InventoryItems.Add(item);
         await db.SaveChangesAsync(ct);
 
         return InventoryItemResponse.From(item);
+    }
+
+    /// <summary>TASK-28 ops/testing: run the near-expiry/expired/low-stock scan now instead of waiting for its daily schedule.</summary>
+    [HttpPost("api/inventory-alerts/run-scan")]
+    [Authorize(Policy = Policies.OwnerOnly)]
+    public async Task<ActionResult<object>> RunAlertScanNow(CancellationToken ct)
+    {
+        var created = await alertJob.RunAsync(ct);
+        return new { created };
+    }
+
+    /// <summary>TASK-28: standing near-expiry/expired/low-stock alerts for a clinic, unresolved ones first.</summary>
+    [HttpGet("api/clinics/{clinicId:guid}/inventory-alerts")]
+    public async Task<ActionResult<List<InventoryAlertResponse>>> ListAlerts(Guid clinicId, CancellationToken ct)
+    {
+        var alerts = await db.InventoryAlerts
+            .Where(a =>
+                (a.InventoryBatch != null && a.InventoryBatch.InventoryItem.ClinicId == clinicId) ||
+                (a.InventoryItem != null && a.InventoryItem.ClinicId == clinicId))
+            .OrderBy(a => a.ResolvedAt != null)
+            .ThenByDescending(a => a.CreatedAt)
+            .ToListAsync(ct);
+        return alerts.Select(InventoryAlertResponse.From).ToList();
     }
 
     [HttpGet("api/inventory-items/{itemId:guid}/batches")]

@@ -13,5 +13,8 @@ public class Tenant
     public bool IsActive { get; set; } = true;
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
+    /// <summary>TASK-28: how many days ahead of a batch's expiry the daily scan job raises a NearExpiry alert.</summary>
+    public int LowStockAlertLeadDays { get; set; } = 7;
+
     public ICollection<User> Users { get; set; } = new List<User>();
 }

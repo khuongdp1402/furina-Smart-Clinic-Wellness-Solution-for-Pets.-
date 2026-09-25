@@ -54,6 +54,10 @@ builder.Services.AddHostedService<VaccinationReminderBackgroundService>();
 builder.Services.AddSingleton<AppointmentReminderJob>();
 builder.Services.AddHostedService<AppointmentReminderBackgroundService>();
 
+// --- Inventory near-expiry/expired/low-stock alerts (TASK-28) ---
+builder.Services.AddSingleton<InventoryAlertJob>();
+builder.Services.AddHostedService<InventoryAlertBackgroundService>();
+
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
     ?? throw new InvalidOperationException("Missing Jwt configuration section.");
 if (string.IsNullOrWhiteSpace(jwtOptions.Secret))

@@ -30,6 +30,7 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
     public DbSet<AppointmentReminderLog> AppointmentReminderLogs => Set<AppointmentReminderLog>();
     public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
     public DbSet<InventoryBatch> InventoryBatches => Set<InventoryBatch>();
+    public DbSet<InventoryAlert> InventoryAlerts => Set<InventoryAlert>();
     public DbSet<Invoice> Invoices => Set<Invoice>();
     public DbSet<InvoiceLineItem> InvoiceLineItems => Set<InvoiceLineItem>();
 
@@ -45,6 +46,7 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
             e.HasIndex(x => x.Slug).IsUnique();
             e.Property(x => x.IsActive).HasColumnName("is_active");
             e.Property(x => x.CreatedAt).HasColumnName("created_at");
+            e.Property(x => x.LowStockAlertLeadDays).HasColumnName("low_stock_alert_lead_days");
         });
 
         modelBuilder.Entity<User>(e =>
@@ -419,9 +421,33 @@ public class FurinaDbContext(DbContextOptions<FurinaDbContext> options) : DbCont
             e.Property(x => x.Name).HasColumnName("name").IsRequired();
             e.Property(x => x.Unit).HasColumnName("unit");
             e.Property(x => x.Price).HasColumnName("price").HasColumnType("numeric(12,2)");
+            e.Property(x => x.MinStockThreshold).HasColumnName("min_stock_threshold");
             e.HasIndex(x => x.ClinicId);
             e.HasOne(x => x.Clinic).WithMany()
                 .HasForeignKey(x => x.ClinicId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Tenant).WithMany()
+                .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<InventoryAlert>(e =>
+        {
+            e.ToTable("inventory_alerts");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id").IsRequired();
+            e.Property(x => x.Type).HasColumnName("type").IsRequired();
+            e.Property(x => x.InventoryBatchId).HasColumnName("inventory_batch_id");
+            e.Property(x => x.InventoryItemId).HasColumnName("inventory_item_id");
+            e.Property(x => x.CreatedAt).HasColumnName("created_at");
+            e.Property(x => x.ResolvedAt).HasColumnName("resolved_at");
+            // AC-1/AC-2's dedupe check ("is there already an open alert
+            // for this batch/item") is a lookup by exactly these columns.
+            e.HasIndex(x => new { x.Type, x.InventoryBatchId, x.ResolvedAt });
+            e.HasIndex(x => new { x.Type, x.InventoryItemId, x.ResolvedAt });
+            e.HasOne(x => x.InventoryBatch).WithMany()
+                .HasForeignKey(x => x.InventoryBatchId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.InventoryItem).WithMany()
+                .HasForeignKey(x => x.InventoryItemId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(x => x.Tenant).WithMany()
                 .HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
         });
