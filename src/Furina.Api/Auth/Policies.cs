@@ -14,10 +14,17 @@ public static class Policies
     public const string VetOnly = "VetOnly";
     public const string ReceptionistOnly = "ReceptionistOnly";
 
+    /// <summary>
+    /// TASK-15: Owner and Receptionist can both create/update a clinic;
+    /// only Owner (see OwnerOnly) can delete/archive one.
+    /// </summary>
+    public const string ClinicManage = "ClinicManage";
+
     public static void AddFurinaPolicies(this AuthorizationOptions options)
     {
         options.AddPolicy(OwnerOnly, p => p.RequireRole(RoleNames.Owner, RoleNames.SuperAdmin));
         options.AddPolicy(VetOnly, p => p.RequireRole(RoleNames.Vet, RoleNames.SuperAdmin));
         options.AddPolicy(ReceptionistOnly, p => p.RequireRole(RoleNames.Receptionist, RoleNames.SuperAdmin));
+        options.AddPolicy(ClinicManage, p => p.RequireRole(RoleNames.Owner, RoleNames.Receptionist, RoleNames.SuperAdmin));
     }
 }

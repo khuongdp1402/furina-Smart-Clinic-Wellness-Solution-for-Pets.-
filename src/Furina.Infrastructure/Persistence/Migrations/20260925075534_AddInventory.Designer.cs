@@ -3,6 +3,7 @@ using System;
 using Furina.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Furina.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(FurinaDbContext))]
-    partial class FurinaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260925075534_AddInventory")]
+    partial class AddInventory
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -237,53 +240,6 @@ namespace Furina.Infrastructure.Persistence.Migrations
                     b.ToTable("clinic_service_prices", (string)null);
                 });
 
-            modelBuilder.Entity("Furina.Domain.Entities.InventoryAlert", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<Guid?>("InventoryBatchId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("inventory_batch_id");
-
-                    b.Property<Guid?>("InventoryItemId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("inventory_item_id");
-
-                    b.Property<DateTimeOffset?>("ResolvedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("resolved_at");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("type");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("InventoryBatchId");
-
-                    b.HasIndex("InventoryItemId");
-
-                    b.HasIndex("TenantId");
-
-                    b.HasIndex("Type", "InventoryBatchId", "ResolvedAt");
-
-                    b.HasIndex("Type", "InventoryItemId", "ResolvedAt");
-
-                    b.ToTable("inventory_alerts", (string)null);
-                });
-
             modelBuilder.Entity("Furina.Domain.Entities.InventoryBatch", b =>
                 {
                     b.Property<Guid>("Id")
@@ -336,18 +292,10 @@ namespace Furina.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("clinic_id");
 
-                    b.Property<int>("MinStockThreshold")
-                        .HasColumnType("integer")
-                        .HasColumnName("min_stock_threshold");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("name");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("numeric(12,2)")
-                        .HasColumnName("price");
 
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid")
@@ -365,182 +313,6 @@ namespace Furina.Infrastructure.Persistence.Migrations
                     b.HasIndex("TenantId");
 
                     b.ToTable("inventory_items", (string)null);
-                });
-
-            modelBuilder.Entity("Furina.Domain.Entities.Invoice", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid>("ClinicId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("clinic_id");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<Guid>("CreatedByUserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("created_by_user_id");
-
-                    b.Property<Guid?>("OwnerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("owner_id");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("status");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
-                    b.Property<decimal>("TotalAmount")
-                        .HasColumnType("numeric(12,2)")
-                        .HasColumnName("total_amount");
-
-                    b.Property<Guid?>("VisitId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("visit_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClinicId");
-
-                    b.HasIndex("TenantId");
-
-                    b.HasIndex("VisitId");
-
-                    b.ToTable("invoices", (string)null);
-                });
-
-            modelBuilder.Entity("Furina.Domain.Entities.InvoiceLineItem", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid?>("InventoryItemId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("inventory_item_id");
-
-                    b.Property<Guid>("InvoiceId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("invoice_id");
-
-                    b.Property<decimal>("LineTotal")
-                        .HasColumnType("numeric(12,2)")
-                        .HasColumnName("line_total");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("integer")
-                        .HasColumnName("quantity");
-
-                    b.Property<Guid?>("ServiceCatalogId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("service_catalog_id");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("type");
-
-                    b.Property<decimal>("UnitPrice")
-                        .HasColumnType("numeric(12,2)")
-                        .HasColumnName("unit_price");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("InventoryItemId");
-
-                    b.HasIndex("InvoiceId");
-
-                    b.HasIndex("ServiceCatalogId");
-
-                    b.HasIndex("TenantId");
-
-                    b.ToTable("invoice_line_items", (string)null);
-                });
-
-            modelBuilder.Entity("Furina.Domain.Entities.LoyaltyAccount", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid>("OwnerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("owner_id");
-
-                    b.Property<int>("PointsBalance")
-                        .HasColumnType("integer")
-                        .HasColumnName("points_balance");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OwnerId")
-                        .IsUnique();
-
-                    b.HasIndex("TenantId");
-
-                    b.ToTable("loyalty_accounts", (string)null);
-                });
-
-            modelBuilder.Entity("Furina.Domain.Entities.LoyaltyTransaction", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<Guid?>("InvoiceId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("invoice_id");
-
-                    b.Property<Guid>("LoyaltyAccountId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("loyalty_account_id");
-
-                    b.Property<int>("Points")
-                        .HasColumnType("integer")
-                        .HasColumnName("points");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("type");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("InvoiceId");
-
-                    b.HasIndex("LoyaltyAccountId");
-
-                    b.HasIndex("TenantId");
-
-                    b.ToTable("loyalty_transactions", (string)null);
                 });
 
             modelBuilder.Entity("Furina.Domain.Entities.MedicalRecord", b =>
@@ -1011,18 +783,6 @@ namespace Furina.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("is_active");
 
-                    b.Property<int>("LowStockAlertLeadDays")
-                        .HasColumnType("integer")
-                        .HasColumnName("low_stock_alert_lead_days");
-
-                    b.Property<decimal>("LoyaltyPointsAmountUnit")
-                        .HasColumnType("numeric(12,2)")
-                        .HasColumnName("loyalty_points_amount_unit");
-
-                    b.Property<int>("LoyaltyPointsPerUnit")
-                        .HasColumnType("integer")
-                        .HasColumnName("loyalty_points_per_unit");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text")
@@ -1304,31 +1064,6 @@ namespace Furina.Infrastructure.Persistence.Migrations
                     b.Navigation("Tenant");
                 });
 
-            modelBuilder.Entity("Furina.Domain.Entities.InventoryAlert", b =>
-                {
-                    b.HasOne("Furina.Domain.Entities.InventoryBatch", "InventoryBatch")
-                        .WithMany()
-                        .HasForeignKey("InventoryBatchId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("Furina.Domain.Entities.InventoryItem", "InventoryItem")
-                        .WithMany()
-                        .HasForeignKey("InventoryItemId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("Furina.Domain.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("InventoryBatch");
-
-                    b.Navigation("InventoryItem");
-
-                    b.Navigation("Tenant");
-                });
-
             modelBuilder.Entity("Furina.Domain.Entities.InventoryBatch", b =>
                 {
                     b.HasOne("Furina.Domain.Entities.InventoryItem", "InventoryItem")
@@ -1363,102 +1098,6 @@ namespace Furina.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Clinic");
-
-                    b.Navigation("Tenant");
-                });
-
-            modelBuilder.Entity("Furina.Domain.Entities.Invoice", b =>
-                {
-                    b.HasOne("Furina.Domain.Entities.Clinic", "Clinic")
-                        .WithMany()
-                        .HasForeignKey("ClinicId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Furina.Domain.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Furina.Domain.Entities.Visit", "Visit")
-                        .WithMany()
-                        .HasForeignKey("VisitId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Clinic");
-
-                    b.Navigation("Tenant");
-
-                    b.Navigation("Visit");
-                });
-
-            modelBuilder.Entity("Furina.Domain.Entities.InvoiceLineItem", b =>
-                {
-                    b.HasOne("Furina.Domain.Entities.InventoryItem", "InventoryItem")
-                        .WithMany()
-                        .HasForeignKey("InventoryItemId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Furina.Domain.Entities.Invoice", "Invoice")
-                        .WithMany("Lines")
-                        .HasForeignKey("InvoiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Furina.Domain.Entities.ServiceCatalog", "ServiceCatalog")
-                        .WithMany()
-                        .HasForeignKey("ServiceCatalogId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Furina.Domain.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("InventoryItem");
-
-                    b.Navigation("Invoice");
-
-                    b.Navigation("ServiceCatalog");
-
-                    b.Navigation("Tenant");
-                });
-
-            modelBuilder.Entity("Furina.Domain.Entities.LoyaltyAccount", b =>
-                {
-                    b.HasOne("Furina.Domain.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Tenant");
-                });
-
-            modelBuilder.Entity("Furina.Domain.Entities.LoyaltyTransaction", b =>
-                {
-                    b.HasOne("Furina.Domain.Entities.Invoice", "Invoice")
-                        .WithMany()
-                        .HasForeignKey("InvoiceId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Furina.Domain.Entities.LoyaltyAccount", "LoyaltyAccount")
-                        .WithMany("Transactions")
-                        .HasForeignKey("LoyaltyAccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Furina.Domain.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Invoice");
-
-                    b.Navigation("LoyaltyAccount");
 
                     b.Navigation("Tenant");
                 });
@@ -1783,16 +1422,6 @@ namespace Furina.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Furina.Domain.Entities.InventoryItem", b =>
                 {
                     b.Navigation("Batches");
-                });
-
-            modelBuilder.Entity("Furina.Domain.Entities.Invoice", b =>
-                {
-                    b.Navigation("Lines");
-                });
-
-            modelBuilder.Entity("Furina.Domain.Entities.LoyaltyAccount", b =>
-                {
-                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("Furina.Domain.Entities.Pet", b =>

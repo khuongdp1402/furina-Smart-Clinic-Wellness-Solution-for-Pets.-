@@ -1,7 +1,12 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Furina.Api.Auth;
+using Furina.Api.Config;
+using Furina.Api.Hubs;
+using Furina.Api.Jobs;
 using Furina.Infrastructure.Auth;
 using Furina.Infrastructure.MultiTenancy;
+using Furina.Infrastructure.Notifications;
 using Furina.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -11,9 +16,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+// TASK-16: request/response DTOs use enums like DayOfWeek as readable
+// strings ("Monday"), not the framework's numeric default — found by
+// actually calling the endpoint with a day name and getting a real 400.
+builder.Services.AddControllers()
+    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+// --- Real-time dispatch board (TASK-25) ---
+builder.Services.AddSignalR();
 
 // --- Multi-tenant database wiring (TASK-11) ---
 // Scoped so each HTTP request gets its own tenant value and its own
@@ -31,7 +43,20 @@ builder.Services.AddDbContext<FurinaDbContext>((sp, options) =>
 
 // --- Auth (TASK-12) ---
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+builder.Services.Configure<MedicalRecordOptions>(builder.Configuration.GetSection(MedicalRecordOptions.SectionName));
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
+
+// --- Vaccination reminders (TASK-20) ---
+builder.Services.AddSingleton<VaccinationReminderJob>();
+builder.Services.AddHostedService<VaccinationReminderBackgroundService>();
+
+// --- Appointment reminders (TASK-24) ---
+builder.Services.AddSingleton<AppointmentReminderJob>();
+builder.Services.AddHostedService<AppointmentReminderBackgroundService>();
+
+// --- Inventory near-expiry/expired/low-stock alerts (TASK-28) ---
+builder.Services.AddSingleton<InventoryAlertJob>();
+builder.Services.AddHostedService<InventoryAlertBackgroundService>();
 
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
     ?? throw new InvalidOperationException("Missing Jwt configuration section.");
@@ -43,6 +68,14 @@ if (string.IsNullOrWhiteSpace(jwtOptions.Secret))
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        // Without this, JwtBearerHandler silently remaps standard short
+        // claim names (e.g. "sub") to legacy XML-SOAP claim URIs on the
+        // way in — found for real when PetsController's
+        // FindFirstValue(JwtRegisteredClaimNames.Sub) came back null even
+        // though the token (inspected via jwt.io) clearly had a "sub"
+        // claim. Every claim now reads back exactly as JwtTokenService
+        // wrote it.
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -53,6 +86,24 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret)),
             ClockSkew = TimeSpan.FromSeconds(30),
+        };
+
+        // Browser WebSocket connections can't set an Authorization
+        // header on the upgrade handshake — SignalR's own client convention
+        // is to send the token as an `access_token` query parameter
+        // instead, which this reads for any request under the hub's path.
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            },
         };
     });
 
@@ -81,6 +132,7 @@ app.UseMiddleware<TenantClaimGuardMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<DispatchBoardHub>("/hubs/dispatch-board");
 
 if (app.Configuration.GetValue<bool>("Seed:RunOnStartup"))
 {

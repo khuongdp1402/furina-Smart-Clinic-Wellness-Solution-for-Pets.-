@@ -4,3 +4,9 @@ obj/
 .vs/
 appsettings.*.json
 !appsettings.Development.json
+node_modules/
+dist/
+.turbo/
+*.tsbuildinfo
+test-results/
+.next/

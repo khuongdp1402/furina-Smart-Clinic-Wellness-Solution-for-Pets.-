@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FURINA — Bệnh Viện & Hệ Thống Chăm Sóc Thú Cưng Chuẩn Quốc Tế</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="client.css">
+</head>
+<body>
+
+  <!-- Top Announcement Bar -->
+  <div class="top-bar">
+    <div class="container top-bar-inner">
+      <div class="top-bar-left">
+        <span>📍 3 Chi nhánh TP.HCM: Q.1 · Thảo Điền · Q.7</span>
+        <span>⏰ Giờ làm việc: 08:00 - 21:00 (Cấp cứu 24/7)</span>
+      </div>
+      <div class="top-bar-right">
+        <span>📞 Hotline Cấp Cứu: <a href="tel:19008899"><strong>1900 8899</strong></a></span>
+        <a href="admin.html" class="top-admin-link">🔐 Cổng Nhân Viên</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Client Header -->
+  <header class="client-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand-link">
+        <div class="brand-icon">🐾</div>
+        <div class="brand-text">
+          <h1>FURINA</h1>
+          <span>Pet Wellness Hospital</span>
+        </div>
+      </a>
+
+      <!-- Navigation -->
+      <nav class="nav-links">
+        <a href="#services" class="active">Dịch Vụ & Bảng Giá</a>
+        <a href="#passport">Sổ Tiêm Điện Tử</a>
+        <a href="#doctors">Đội Ngũ Bác Sĩ</a>
+        <a href="#clinics">Cơ Sở & Liên Hệ</a>
+      </nav>
+
+      <!-- Header Actions -->
+      <div class="header-actions">
+        <a href="#booking" class="btn btn-primary">📅 Đặt Lịch Khám</a>
+        <a href="admin.html" class="btn btn-admin" title="Chuyển sang màn hình điều hành, khám bệnh và thu ngân">
+          <span>🔐 Quản Trị Phòng Khám</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section" id="booking">
+    <div class="container hero-grid">
+      <div class="hero-left">
+        <div class="hero-badge">✨ Tiêu Chuẩn Thú Y WSAVA Quốc Tế</div>
+        <h2 class="hero-title">
+          Chăm sóc tận tâm <br>
+          <span class="highlight">Bảo vệ sức khỏe</span> người bạn nhỏ
+        </h2>
+        <p class="hero-desc">
+          Hệ thống bệnh viện thú y hiện đại với đội ngũ bác sĩ chuyên khoa giàu kinh nghiệm, trang thiết bị chẩn đoán tân tiến và hồ sơ y bạ điện tử trọn đời cho thú cưng của bạn.
+        </p>
+
+        <div class="hero-features-list">
+          <div class="hero-feat-item">
+            <span class="check">✓</span> Bác sĩ chuyên khoa thú y trực tiếp thăm khám & theo dõi
+          </div>
+          <div class="hero-feat-item">
+            <span class="check">✓</span> Sổ tiêm phòng & hồ sơ bệnh án điện tử (Digital Pet ID)
+          </div>
+          <div class="hero-feat-item">
+            <span class="check">✓</span> Đặt lịch online nhanh chóng — Đến là khám, không chờ đợi
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; align-items: center;">
+          <a href="#passport" class="btn btn-outline">🐾 Tra Cứu Sổ Tiêm Của Bé</a>
+          <span style="font-size: 0.88rem; color: var(--text-muted);">
+            Hoặc gọi cấp cứu: <strong style="color: var(--teal-primary);">1900 8899</strong>
+          </span>
+        </div>
+      </div>
+
+      <!-- Quick Booking Card -->
+      <div class="quick-booking-card">
+        <div class="booking-card-header">
+          <div>
+            <h3>📅 Đặt Lịch Hẹn Trực Tuyến</h3>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Nhận số thứ tự khám điện tử chỉ trong 1 phút</span>
+          </div>
+          <span class="badge badge-success">Sẵn sàng nhận lịch</span>
+        </div>
+
+        <form id="clientBookingForm" onsubmit="handleClientBooking(event)">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Loài thú cưng:</label>
+              <select id="clientPetType" class="form-control" onchange="updateServicePrice()">
+                <option value="dog">🐶 Chó cưng</option>
+                <option value="cat">🐱 Mèo cưng</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Cơ sở phòng khám:</label>
+              <select id="clientClinic" class="form-control">
+                <option value="thao-dien">Cơ sở Thảo Điền (TP. Thủ Đức)</option>
+                <option value="hai-ba-trung">Cơ sở Hai Bà Trưng (Quận 1)</option>
+                <option value="phu-my-hung">Cơ sở Phú Mỹ Hưng (Quận 7)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Dịch vụ chăm sóc:</label>
+            <select id="clientService" class="form-control" onchange="updateServicePrice()">
+              <option value="250000" data-name="Khám sức khỏe tổng quát">🩺 Khám tổng quát & Tư vấn dinh dưỡng (250,000 đ)</option>
+              <option value="350000" data-name="Tiêm vắc-xin phòng bệnh">💉 Tiêm vắc-xin 7 bệnh / 4 bệnh mèo (350,000 đ)</option>
+              <option value="450000" data-name="Spa cắt tỉa & Tắm thơm">🛁 Spa cắt tỉa lông nghệ thuật & Tắm thơm (450,000 đ)</option>
+              <option value="180000" data-name="Cạo vôi răng siêu âm">🦷 Cạo vôi răng siêu âm không gây mê (180,000 đ)</option>
+              <option value="500000" data-name="Xét nghiệm máu & Siêu âm">🔬 Xét nghiệm máu tổng quát & Siêu âm (500,000 đ)</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Bác sĩ phụ trách:</label>
+              <select id="clientDoctor" class="form-control">
+                <option value="BS. Trần Thảo Vy">BS. Trần Thảo Vy (Trưởng khoa)</option>
+                <option value="BS. Nguyễn Văn Hùng">BS. Nguyễn Văn Hùng (Nội khoa)</option>
+                <option value="KTV. Hoàng Minh Tuấn">KTV. Hoàng Minh Tuấn (Stylist Spa)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Ngày hẹn:</label>
+              <input type="date" id="clientBookingDate" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Khung giờ khám còn trống:</label>
+            <div class="slot-selection-grid" id="clientSlotGrid">
+              <div class="slot-chip" onclick="selectClientSlot(this, '08:30')">08:30</div>
+              <div class="slot-chip active" onclick="selectClientSlot(this, '09:30')">09:30</div>
+              <div class="slot-chip" onclick="selectClientSlot(this, '10:30')">10:30</div>
+              <div class="slot-chip disabled">11:30</div>
+              <div class="slot-chip" onclick="selectClientSlot(this, '14:00')">14:00</div>
+              <div class="slot-chip" onclick="selectClientSlot(this, '15:30')">15:30</div>
+              <div class="slot-chip" onclick="selectClientSlot(this, '16:30')">16:30</div>
+              <div class="slot-chip" onclick="selectClientSlot(this, '18:00')">18:00</div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Tên bé & Giống:</label>
+              <input type="text" id="clientPetName" class="form-control" placeholder="Ví dụ: Mochi (Golden)" required value="Mochi">
+            </div>
+            <div class="form-group">
+              <label>Số điện thoại chủ nuôi:</label>
+              <input type="tel" id="clientPhone" class="form-control" placeholder="0918xxxxxx" required value="0918789123">
+            </div>
+          </div>
+
+          <div class="booking-fee-row">
+            <span>Chi phí tạm tính:</span>
+            <strong id="clientFeeDisplay">250,000 đ</strong>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem;">
+            ✓ Xác Nhận Đặt Lịch Hẹn Ngay
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Digital Pet Passport Lookup Section -->
+  <section class="section section-alt" id="passport">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Hồ Sơ Y Khoa Số</span>
+        <h3 class="section-title">Sổ Tiêm Chủng & Digital Pet Passport</h3>
+        <p class="section-desc">Theo dõi toàn bộ lịch sử khám chữa bệnh, lịch tiêm phòng vắc-xin và tích lũy điểm thưởng thành viên VIP ngay trên nền tảng điện tử.</p>
+      </div>
+
+      <!-- Quick Switch Pet Bar -->
+      <div style="display: flex; justify-content: center; gap: 0.75rem; margin-bottom: 2rem;">
+        <button class="btn btn-outline" style="border-color: var(--teal-primary); background: var(--teal-light); color: var(--teal-dark);" onclick="showPetPassport('mochi', this)">🐶 Bé Mochi (Golden Retriever)</button>
+        <button class="btn btn-outline" onclick="showPetPassport('lulu', this)">🐱 Bé Lulu (Mèo Anh Lông Ngắn)</button>
+        <button class="btn btn-outline" onclick="showPetPassport('bong', this)">🐩 Bé Bông (Poodle Trắng)</button>
+      </div>
+
+      <!-- Passport Card Details -->
+      <div class="passport-card">
+        <!-- Left: Physical Digital Pet ID Card Simulation -->
+        <div class="passport-id-view" id="passportCardView">
+          <div class="passport-badge">CHỨNG NHẬN VIP</div>
+          
+          <div class="passport-top">
+            <div style="font-size: 0.72rem; letter-spacing: 0.08em; opacity: 0.8;">BỆNH VIỆN THÚ Y FURINA</div>
+            <h4>DIGITAL PET PASSPORT</h4>
+          </div>
+
+          <div class="passport-body">
+            <div class="passport-avatar" id="passAvatar">🐶</div>
+            <div class="passport-pet-info">
+              <h3 id="passName">Mochi</h3>
+              <p id="passBreed">Golden Retriever (Thuần chủng)</p>
+              <p id="passAgeWeight">Tuổi: 2 năm 4 tháng · Cân nặng: 28.5 kg</p>
+            </div>
+          </div>
+
+          <div style="background: rgba(0,0,0,0.15); border-radius: 6px; padding: 0.5rem 0.75rem; font-family: monospace; font-size: 0.8rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;" id="passRfid">
+            <span>RFID CHIP: 982.014.281.092</span>
+            <span style="background: rgba(255,255,255,0.25); padding: 0.15rem 0.45rem; border-radius: 4px; font-size: 0.7rem;">WSAVA ID</span>
+          </div>
+
+          <div class="passport-footer">
+            <div>Chủ nuôi: <strong id="passOwner">Đỗ Phú Khương</strong></div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <div>Tích lũy: <strong style="color: #FDE68A;" id="passStars">1,450 Stars</strong></div>
+              <div class="qr-watermark" title="Quét mã QR để mở y bạ điện tử"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Vaccine Record List -->
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h4 style="font-family: var(--font-heading); font-size: 1.15rem; color: var(--text-main);">
+              💉 Lịch Sử Tiêm Phòng & Mũi Nhắc (Chuẩn WSAVA)
+            </h4>
+            <span class="badge badge-teal">Hợp lệ y tế</span>
+          </div>
+
+          <div class="vaccine-list" id="passVaccineList">
+            <!-- Rendered by client.js -->
+          </div>
+
+          <div style="margin-top: 1.5rem; padding: 1rem; background: #F8FAFC; border: 1px solid var(--border-light); border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <strong style="display: block; font-size: 0.88rem; color: var(--text-main);">Tự động nhắc lịch tiêm qua Zalo / SMS</strong>
+              <span style="font-size: 0.78rem; color: var(--text-muted);">Hệ thống sẽ gửi thông báo trước 7 ngày khi đến hạn mũi tiêm kế tiếp.</span>
+            </div>
+            <span class="badge badge-success">Đang bật</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services & Pricing Section -->
+  <section class="section" id="services">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Bảng Giá Dịch Vụ</span>
+        <h3 class="section-title">Minh Bạch & Tận Tâm</h3>
+        <p class="section-desc">Mọi dịch vụ tại FURINA đều được niêm yết rõ ràng, không phát sinh chi phí phụ vô lý.</p>
+      </div>
+
+      <div class="services-grid">
+        <div class="service-card">
+          <div class="service-icon">🩺</div>
+          <h4>Khám Bệnh Lâm Sàng</h4>
+          <p>Thăm khám tổng quát tai, mắt, mũi, họng, nghe tim phổi, đo thân nhiệt và tư vấn phác đồ điều trị chi tiết.</p>
+          <div class="service-price-tag">
+            <span>Chi phí tiêu chuẩn</span>
+            <strong>250,000 đ</strong>
+          </div>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon">💉</div>
+          <h4>Tiêm Phòng Vắc-xin</h4>
+          <p>Vắc-xin 7 bệnh chó và 4 bệnh mèo chính hãng Zoetis (USA) & MSD, bảo quản nghiêm ngặt trong tủ lạnh chuyên dụng.</p>
+          <div class="service-price-tag">
+            <span>Chỉ từ</span>
+            <strong>350,000 đ / mũi</strong>
+          </div>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon">🔬</div>
+          <h4>Xét Nghiệm & Siêu Âm</h4>
+          <p>Máy sinh hóa máu, huyết học 18 thông số và máy siêu âm màu Doppler thế hệ mới, cho kết quả chuẩn xác trong 15 phút.</p>
+          <div class="service-price-tag">
+            <span>Trọn gói từ</span>
+            <strong>400,000 đ</strong>
+          </div>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon">✂️</div>
+          <h4>Spa & Tạo Kiểu Nghệ Thuật</h4>
+          <p>Tắm dưỡng ẩm khử mùi, cắt tỉa form dáng thời thượng, vệ sinh tai, cắt mài móng và vắt tuyến hôi an toàn.</p>
+          <div class="service-price-tag">
+            <span>Chỉ từ</span>
+            <strong>350,000 đ</strong>
+          </div>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon">🦷</div>
+          <h4>Nha Khoa Thú Cưng</h4>
+          <p>Cạo vôi răng bằng sóng siêu âm không cần gây mê với trường hợp nhẹ, đánh bóng men răng và trị viêm nướu.</p>
+          <div class="service-price-tag">
+            <span>Chi phí</span>
+            <strong>180,000 đ</strong>
+          </div>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon">🏨</div>
+          <h4>Khách Sạn Thú Cưng VIP</h4>
+          <p>Phòng máy lạnh độc lập 24/24, có camera quan sát riêng cho chủ xem qua điện thoại, chế độ dinh dưỡng hạt cao cấp.</p>
+          <div class="service-price-tag">
+            <span>Giá lưu trú</span>
+            <strong>300,000 đ / ngày</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Doctors Section -->
+  <section class="section section-alt" id="doctors">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Đội Ngũ Chuyên Gia</span>
+        <h3 class="section-title">Bác Sĩ Tận Tâm & Yêu Thương Động Vật</h3>
+        <p class="section-desc">Được đào tạo bài bản từ Đại học Nông Lâm và tu nghiệp quốc tế về nhãn khoa, nội khoa thú nhỏ.</p>
+      </div>
+
+      <div class="doctors-grid">
+        <div class="doctor-card">
+          <div class="doc-cover">
+            <div class="doc-avatar">👩‍⚕️</div>
+          </div>
+          <div class="doc-content">
+            <div class="doc-name">BS. Trần Thảo Vy</div>
+            <div class="doc-role">Trưởng Khoa Lâm Sàng & Phẫu Thuật</div>
+            <p class="doc-desc">Hơn 12 năm kinh nghiệm điều trị các ca bệnh phức tạp ở chó mèo, tu nghiệp chuyên sâu về phẫu thuật mô mềm và chấn thương chỉnh hình.</p>
+          </div>
+        </div>
+
+        <div class="doctor-card">
+          <div class="doc-cover">
+            <div class="doc-avatar">👨‍⚕️</div>
+          </div>
+          <div class="doc-content">
+            <div class="doc-name">BS. Nguyễn Văn Hùng</div>
+            <div class="doc-role">Bác Sĩ Nội Khoa & Chẩn Đoán Hình Ảnh</div>
+            <p class="doc-desc">Chuyên gia đọc kết quả siêu âm Doppler tim mạch và X-quang kỹ thuật số, đặc biệt nhẹ nhàng và kiên nhẫn với các bé nhút nhát.</p>
+          </div>
+        </div>
+
+        <div class="doctor-card">
+          <div class="doc-cover">
+            <div class="doc-avatar">✂️</div>
+          </div>
+          <div class="doc-content">
+            <div class="doc-name">KTV. Hoàng Minh Tuấn</div>
+            <div class="doc-role">Trưởng Bộ Phận Grooming & Spa VIP</div>
+            <p class="doc-desc">Chứng chỉ Grooming Master Quốc Tế Class-A, thấu hiểu tâm lý hành vi động vật giúp các bé cưng thư giãn tối đa khi làm đẹp.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Clinics & Network Section -->
+  <section class="section" id="clinics">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Hệ Thống Cơ Sở</span>
+        <h3 class="section-title">Phòng Khám Gần Bạn Nhất</h3>
+        <p class="section-desc">Trang bị phòng tiểu phẫu áp lực dương, khu cách ly lây nhiễm và bãi đỗ xe ô tô thuận tiện.</p>
+      </div>
+
+      <div class="clinics-grid">
+        <div class="clinic-card">
+          <h4>📍 Chi Nhánh 1: Quận 1</h4>
+          <p>120 Hai Bà Trưng, Phường Đa Kao, Quận 1, TP.HCM</p>
+          <p>📞 Điện thoại: <strong>028 3822 9901</strong></p>
+          <span class="clinic-hours">Mở cửa: 08:00 - 21:00</span>
+        </div>
+
+        <div class="clinic-card" style="border-color: var(--teal-border); box-shadow: var(--shadow-md);">
+          <h4>📍 Chi Nhánh 2: Thảo Điền (Trụ Sở Chính)</h4>
+          <p>45 Đường Thảo Điền, Phường Thảo Điền, TP. Thủ Đức</p>
+          <p>📞 Điện thoại: <strong>028 7300 8899</strong></p>
+          <span class="clinic-hours" style="background: var(--emerald-light); color: var(--emerald-primary);">Trực Cấp Cứu 24/7</span>
+        </div>
+
+        <div class="clinic-card">
+          <h4>📍 Chi Nhánh 3: Phú Mỹ Hưng</h4>
+          <p>88 Nguyễn Đức Cảnh, Phường Tân Phong, Quận 7, TP.HCM</p>
+          <p>📞 Điện thoại: <strong>028 5412 8820</strong></p>
+          <span class="clinic-hours">Mở cửa: 08:00 - 21:00</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Client Footer -->
+  <footer class="client-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+            <span style="font-size: 1.5rem;">🐾</span>
+            <strong style="color: #FFF; font-size: 1.25rem; font-family: var(--font-heading);">FURINA HOSPITAL</strong>
+          </div>
+          <p style="margin-bottom: 1rem; line-height: 1.6;">
+            Hệ sinh thái chăm sóc sức khỏe và y tế thú cưng chuẩn quốc tế. Tận tâm, chu đáo và minh bạch trong mọi phác đồ điều trị.
+          </p>
+          <p>📞 Cấp cứu 24/7: <strong style="color: #5EEAD4;">1900 8899</strong></p>
+        </div>
+
+        <div class="footer-col">
+          <h5>Dịch Vụ Khám</h5>
+          <ul>
+            <li><a href="#services">Khám sức khỏe tổng quát</a></li>
+            <li><a href="#services">Tiêm vắc-xin định kỳ</a></li>
+            <li><a href="#services">Siêu âm & Xét nghiệm máu</a></li>
+            <li><a href="#services">Nha khoa & Cạo vôi răng</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h5>Chăm Sóc & Làm Đẹp</h5>
+          <ul>
+            <li><a href="#services">Cắt tỉa & Tắm dưỡng lông</a></li>
+            <li><a href="#services">Lưu trú khách sạn VIP</a></li>
+            <li><a href="#services">Vật tư y tế & Thức ăn hạt</a></li>
+            <li><a href="#passport">Sổ tiêm chủng điện tử</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h5>Dành Cho Phòng Khám</h5>
+          <ul>
+            <li><a href="admin.html">Bàn điều phối (Dispatch Board)</a></li>
+            <li><a href="admin.html">Khám bệnh & Bệnh án SOAP</a></li>
+            <li><a href="admin.html">Thu ngân POS & Hóa đơn</a></li>
+            <li><a href="admin.html">Quản lý kho dược FEFO</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>© 2026 FURINA Pet Wellness Solution. Bản quyền thuộc về Đỗ Phú Khương.</div>
+        <div>Giấy phép hoạt động thú y số: 028/GPHĐ-TYTPHCM cấp ngày 15/01/2024.</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Booking Confirmation Modal -->
+  <div class="modal-overlay" id="bookingModal" onclick="closeBookingModal()">
+    <div class="modal-dialog" onclick="event.stopPropagation()">
+      <div class="modal-hero-icon">✓</div>
+      <h3 style="font-family: var(--font-heading); font-size: 1.5rem; text-align: center; color: var(--text-main); margin-bottom: 0.35rem;">
+        Đặt Lịch Hẹn Thành Công!
+      </h3>
+      <p style="text-align: center; font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+        Hệ thống đã gửi số thứ tự điện tử tới Bàn Điều Phối của Bác Sĩ.
+      </p>
+
+      <div class="summary-receipt">
+        <div class="sr-row">
+          <span>Mã phiếu khám:</span>
+          <strong style="color: var(--teal-dark); font-family: monospace; font-size: 1.05rem;" id="modalApptCode">#FUR-8891</strong>
+        </div>
+        <div class="sr-row">
+          <span>Thú cưng:</span>
+          <strong id="modalPetInfo">Mochi (Golden Retriever)</strong>
+        </div>
+        <div class="sr-row">
+          <span>Khung giờ & Ngày hẹn:</span>
+          <strong id="modalDateTime">09:30 · Ngày 26/09/2026</strong>
+        </div>
+        <div class="sr-row">
+          <span>Dịch vụ khám:</span>
+          <strong id="modalService">Khám sức khỏe tổng quát</strong>
+        </div>
+        <div class="sr-row">
+          <span>Bác sĩ phụ trách:</span>
+          <strong id="modalDoctor">BS. Trần Thảo Vy</strong>
+        </div>
+        <div class="sr-row">
+          <span>Cơ sở phòng khám:</span>
+          <strong id="modalClinic">Cơ sở Thảo Điền (TP. Thủ Đức)</strong>
+        </div>
+        <div class="sr-row" style="padding-top: 0.65rem; border-top: 1px dashed var(--border-light);">
+          <span>Chi phí tạm tính:</span>
+          <strong style="font-size: 1.15rem; color: var(--teal-dark);" id="modalPrice">250,000 đ</strong>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 0.75rem;">
+        <button class="btn btn-outline" style="flex: 1;" onclick="closeBookingModal()">Đóng cửa sổ</button>
+        <a href="admin.html" class="btn btn-primary" style="flex: 1.2;">Xem trên Bàn Điều Phối →</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="client.js"></script>
+</body>
+</html>

@@ -1,0 +1,1018 @@
+/* ========================================================
+   FURINA PET WELLNESS HOSPITAL — CLIENT PORTAL STYLESHEET
+   Design System: Warm Medical & Clean Wellness Aesthetic
+   ======================================================== */
+:root {
+  --font-heading: 'Be Vietnam Pro', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Be Vietnam Pro', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Clean Warm Medical Palette */
+  --bg-page: #F8FAF9;
+  --bg-card: #FFFFFF;
+  --bg-card-alt: #F1F5F4;
+  --bg-input: #FFFFFF;
+  
+  --border-light: #E2E8F0;
+  --border-focus: #0D9488;
+  
+  --text-main: #0F172A;
+  --text-body: #334155;
+  --text-muted: #64748B;
+  --text-light: #94A3B8;
+
+  /* Brand Colors */
+  --teal-primary: #0D9488;
+  --teal-dark: #0F766E;
+  --teal-light: #F0FDFA;
+  --teal-border: #99F6E4;
+
+  --amber-primary: #F59E0B;
+  --amber-dark: #D97706;
+  --amber-light: #FFFBEB;
+
+  --emerald-primary: #10B981;
+  --emerald-light: #ECFDF5;
+
+  --rose-primary: #EF4444;
+  --rose-light: #FEF2F2;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.06), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 12px 28px -4px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
+  
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-full: 9999px;
+  
+  --transition: all 0.2s ease-in-out;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-page);
+  color: var(--text-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Container */
+.container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ========================================================
+   TOP ANNOUNCEMENT BAR
+   ======================================================== */
+.top-bar {
+  background: var(--teal-dark);
+  color: #FFFFFF;
+  font-size: 0.82rem;
+  padding: 0.45rem 0;
+}
+
+.top-bar-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.top-bar-left, .top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.top-bar a {
+  color: #E2E8F0;
+  text-decoration: none;
+  transition: var(--transition);
+}
+.top-bar a:hover {
+  color: #FFFFFF;
+}
+
+/* ========================================================
+   MAIN CLIENT HEADER
+   ======================================================== */
+.client-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #FFFFFF;
+  border-bottom: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 76px;
+}
+
+.brand-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: var(--text-main);
+}
+
+.brand-icon {
+  width: 44px;
+  height: 44px;
+  background: var(--teal-light);
+  border: 1px solid var(--teal-border);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: var(--teal-primary);
+}
+
+.brand-text h1 {
+  font-family: var(--font-heading);
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--teal-dark);
+  line-height: 1.1;
+}
+
+.brand-text span {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Navigation Links */
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.75rem;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: var(--text-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: var(--transition);
+  padding: 0.35rem 0;
+  position: relative;
+}
+
+.nav-links a:hover, .nav-links a.active {
+  color: var(--teal-primary);
+}
+
+.nav-links a.active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--teal-primary);
+  border-radius: var(--radius-full);
+}
+
+/* Header CTAs */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: var(--transition);
+  border: 1px solid transparent;
+}
+
+.btn-primary {
+  background: var(--teal-primary);
+  color: #FFFFFF;
+}
+.btn-primary:hover {
+  background: var(--teal-dark);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+  transform: translateY(-1px);
+}
+
+.btn-admin {
+  background: #F1F5F9;
+  border-color: #CBD5E1;
+  color: var(--text-main);
+  font-size: 0.85rem;
+}
+.btn-admin:hover {
+  background: #E2E8F0;
+  color: var(--teal-dark);
+}
+
+.btn-outline {
+  background: transparent;
+  border-color: var(--border-light);
+  color: var(--text-body);
+}
+.btn-outline:hover {
+  border-color: var(--teal-primary);
+  color: var(--teal-primary);
+  background: var(--teal-light);
+}
+
+.btn-amber {
+  background: var(--amber-primary);
+  color: #FFFFFF;
+}
+.btn-amber:hover {
+  background: var(--amber-dark);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+/* ========================================================
+   HERO SECTION
+   ======================================================== */
+.hero-section {
+  padding: 3.5rem 0 4rem;
+  background: linear-gradient(180deg, #FFFFFF 0%, var(--bg-page) 100%);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  align-items: center;
+  gap: 3.5rem;
+}
+
+@media (max-width: 960px) {
+  .hero-grid { grid-template-columns: 1fr; gap: 2rem; }
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.85rem;
+  background: var(--teal-light);
+  border: 1px solid var(--teal-border);
+  border-radius: var(--radius-full);
+  color: var(--teal-dark);
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+}
+
+.hero-title {
+  font-family: var(--font-heading);
+  font-size: 2.85rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--text-main);
+  margin-bottom: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.hero-title .highlight {
+  color: var(--teal-primary);
+  position: relative;
+}
+
+.hero-desc {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+
+.hero-features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-bottom: 2rem;
+}
+
+.hero-feat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.95rem;
+  color: var(--text-body);
+  font-weight: 500;
+}
+
+.hero-feat-item span.check {
+  color: var(--teal-primary);
+  font-weight: 800;
+}
+
+/* Quick Booking Card */
+.quick-booking-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: var(--shadow-lg);
+}
+
+.booking-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.booking-card-header h3 {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  color: var(--text-main);
+}
+
+.form-group {
+  margin-bottom: 1.15rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-body);
+  margin-bottom: 0.4rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+.form-control {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 0.65rem 0.85rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--text-main);
+  outline: none;
+  transition: var(--transition);
+}
+
+.form-control:focus {
+  border-color: var(--teal-primary);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+}
+
+.slot-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.45rem;
+}
+
+.slot-chip {
+  padding: 0.5rem;
+  background: #F8FAFC;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.slot-chip:hover:not(.disabled) {
+  border-color: var(--teal-primary);
+  color: var(--teal-primary);
+}
+
+.slot-chip.active {
+  background: var(--teal-primary);
+  border-color: var(--teal-primary);
+  color: #FFFFFF;
+}
+
+.slot-chip.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.booking-fee-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 0;
+  margin: 0.85rem 0;
+  border-top: 1px dashed var(--border-light);
+  border-bottom: 1px dashed var(--border-light);
+  font-size: 0.9rem;
+}
+
+.booking-fee-row strong {
+  font-size: 1.2rem;
+  color: var(--teal-dark);
+  font-family: var(--font-heading);
+}
+
+/* ========================================================
+   SECTION STYLING
+   ======================================================== */
+.section {
+  padding: 4.5rem 0;
+}
+
+.section-alt {
+  background: #FFFFFF;
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.section-header {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 3rem;
+}
+
+.section-tag {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--teal-primary);
+  margin-bottom: 0.5rem;
+}
+
+.section-title {
+  font-family: var(--font-heading);
+  font-size: 2.15rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
+}
+
+.section-desc {
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+
+/* Services Grid */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .services-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .services-grid { grid-template-columns: 1fr; }
+}
+
+.service-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+}
+
+.service-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--teal-border);
+}
+
+.service-icon {
+  width: 52px;
+  height: 52px;
+  background: var(--teal-light);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  margin-bottom: 1.25rem;
+}
+
+.service-card h4 {
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
+}
+
+.service-card p {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+  flex: 1;
+}
+
+.service-price-tag {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-light);
+}
+
+.service-price-tag span {
+  font-size: 0.8rem;
+  color: var(--text-light);
+}
+
+.service-price-tag strong {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  color: var(--teal-dark);
+}
+
+/* ========================================================
+   DIGITAL PET PASSPORT LOOKUP SECTION
+   ======================================================== */
+.passport-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 2.25rem;
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 2.5rem;
+}
+
+@media (max-width: 900px) {
+  .passport-card { grid-template-columns: 1fr; }
+}
+
+.passport-id-view {
+  background: linear-gradient(135deg, #0F766E, #0D9488);
+  border-radius: var(--radius-md);
+  padding: 1.75rem;
+  color: #FFFFFF;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.passport-badge {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.passport-top {
+  margin-bottom: 1.5rem;
+}
+
+.passport-top h4 {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  letter-spacing: 0.05em;
+  opacity: 0.9;
+}
+
+.passport-body {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.passport-avatar {
+  width: 72px;
+  height: 72px;
+  background: #FFFFFF;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+}
+
+.passport-pet-info h3 {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.passport-pet-info p {
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.passport-footer {
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
+/* Vaccine History Table in Passport */
+.vaccine-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.vaccine-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  background: #F8FAFC;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+}
+
+.v-info strong {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+.v-info span {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.badge-success { background: var(--emerald-light); color: var(--emerald-primary); }
+.badge-warning { background: var(--amber-light); color: var(--amber-dark); }
+.badge-teal    { background: var(--teal-light); color: var(--teal-dark); }
+
+/* ========================================================
+   DOCTORS & CLINIC LOCATIONS
+   ======================================================== */
+.doctors-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .doctors-grid { grid-template-columns: 1fr; }
+}
+
+.doctor-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.doctor-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.doc-cover {
+  height: 120px;
+  background: linear-gradient(135deg, #0D9488, #14B8A6);
+  position: relative;
+}
+
+.doc-avatar {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 4px solid #FFFFFF;
+  background: #FFFFFF;
+  position: absolute;
+  bottom: -38px;
+  left: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.doc-content {
+  padding: 2.75rem 1.5rem 1.5rem;
+}
+
+.doc-name {
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+  color: var(--text-main);
+  margin-bottom: 0.2rem;
+}
+
+.doc-role {
+  font-size: 0.85rem;
+  color: var(--teal-primary);
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.doc-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* Locations Grid */
+.clinics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+@media (max-width: 900px) {
+  .clinics-grid { grid-template-columns: 1fr; }
+}
+
+.clinic-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+}
+
+.clinic-card h4 {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
+}
+
+.clinic-card p {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.clinic-hours {
+  display: inline-block;
+  margin-top: 0.75rem;
+  font-size: 0.82rem;
+  color: var(--teal-dark);
+  font-weight: 600;
+  background: var(--teal-light);
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-sm);
+}
+
+/* ========================================================
+   FOOTER
+   ======================================================== */
+.client-footer {
+  background: #0F172A;
+  color: #94A3B8;
+  padding: 4rem 0 2rem;
+  font-size: 0.9rem;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  gap: 2.5rem;
+  margin-bottom: 3rem;
+}
+
+@media (max-width: 900px) {
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .footer-grid { grid-template-columns: 1fr; }
+}
+
+.footer-col h5 {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  color: #FFFFFF;
+  margin-bottom: 1.25rem;
+}
+
+.footer-col ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.footer-col a {
+  color: #94A3B8;
+  text-decoration: none;
+  transition: var(--transition);
+}
+.footer-col a:hover {
+  color: #FFFFFF;
+}
+
+.footer-bottom {
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+}
+
+/* ========================================================
+   MODALS, TOASTS & MICRO-INTERACTIONS
+   ======================================================== */
+/* Toast Notifications */
+.toast-shelf {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+.toast-msg {
+  pointer-events: auto;
+  min-width: 320px;
+  max-width: 440px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-left: 4px solid var(--teal-primary);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  animation: slideUpToast 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUpToast {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.t-icon { font-size: 1.4rem; line-height: 1; }
+.t-body h5 { font-family: var(--font-heading); font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.2rem; }
+.t-body p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.45; }
+
+/* Booking Success Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(6px);
+  z-index: 10000;
+  place-items: center;
+  padding: 1.5rem;
+}
+
+.modal-overlay.active {
+  display: grid;
+}
+
+.modal-dialog {
+  background: #FFFFFF;
+  border-radius: var(--radius-lg);
+  max-width: 520px;
+  width: 100%;
+  padding: 2.25rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-hero-icon {
+  width: 64px;
+  height: 64px;
+  background: var(--emerald-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin: 0 auto 1.25rem;
+}
+
+.summary-receipt {
+  background: #F8FAFC;
+  border: 1px dashed var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin: 1.25rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  font-size: 0.88rem;
+}
+
+.sr-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.sr-row span { color: var(--text-muted); }
+.sr-row strong { color: var(--text-main); font-weight: 600; }
+
+/* QR Watermark on Passport */
+.qr-watermark {
+  width: 44px;
+  height: 44px;
+  background: #FFFFFF;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  background-image: repeating-conic-gradient(#0F766E 0% 25%, #fff 0% 50%);
+  background-size: 8px 8px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+/* Pet Type Segmented Switcher */
+.pet-type-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 1.15rem;
+}
+
+.pet-type-btn {
+  padding: 0.65rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+  background: #F8FAFC;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-body);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: var(--transition);
+}
+
+.pet-type-btn:hover {
+  background: #F1F5F9;
+  border-color: #CBD5E1;
+}
+
+.pet-type-btn.active {
+  background: var(--teal-light);
+  border-color: var(--teal-primary);
+  color: var(--teal-dark);
+}
